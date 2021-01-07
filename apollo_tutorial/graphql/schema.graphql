@@ -1,0 +1,8 @@
+type Query {
+  master: String
+  blogs(input_name: String, input_rank: Int): [Blog]
+}
+type Blog {
+  blog_name: String
+  rank: Int
+}
