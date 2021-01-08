@@ -6,12 +6,12 @@ type Movie {
 type Query {
   movies: [Movie]
   movie(title: String!): Movie
-  insertTestDB: Boolean
-  deleteAll: Boolean
 }
 
 type Mutation {
   addMovie(title: String!, score: Int!): Movie!
-  deleteMovie(title: String!): Boolean!
-  updateMovie(title: String!, score: Int, update_title: String): Movie
+  deleteMovie(title: String!): Boolean
+  updateMovie(title: String!, score: Int, update_title: String): Boolean
+  insertTestDB: Boolean
+  deleteAll: Boolean
 }

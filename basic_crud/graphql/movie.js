@@ -66,55 +66,45 @@ function getByTitle(title) {
 }
 
 function updateMovie(title, score = null, update_title = null) {
-  try {
-    if (score != null && update_title != null) {
-      const updated_movie = Movie.findOneAndUpdate(
-        {
-          title: title,
-        },
-        {
-          title: update_title,
-          score: score,
-        }
-      );
-      return updated_movie;
-    } else if (score != null && update_title == null) {
-      const updated_movie = Movie.findOneAndUpdate(
-        {
-          title: title,
-        },
-        {
-          score: score,
-        }
-      );
-      return updated_movie;
-    } else if (score == null && update_title != null) {
-      const updated_movie = Movie.findOneAndUpdate(
-        {
-          title: title,
-        },
-        {
-          title: update_title,
-        }
-      );
-      return updated_movie;
+  Movie.findOne(
+    {
+      title: title,
+    },
+    function (err, movie) {
+      if (err) {
+        console.log(err);
+        return false;
+      }
+      if (score != null && update_title != null) {
+        movie.title = update_title;
+        movie.score = score;
+        movie.save();
+      } else if (score == null && update_title != null) {
+        movie.title = update_title;
+        movie.save();
+      } else if (score != null && update_title == null) {
+        movie.score = score;
+        movie.save();
+      }
+      return true;
     }
-  } catch (err) {
-    console.log(err);
-    throw err;
-  }
+  );
 }
 
 function deleteMovie(title) {
-  try {
-    Movie.deleteOne({
+  Movie.findOneAndDelete(
+    {
       title: title,
-    }).exec();
-    return true;
-  } catch (err) {
-    console.log(err);
-    return false;
-  }
+    },
+    function (err, movie) {
+      if (err) {
+        console.log(err);
+        return false;
+      }
+      console.log(movie);
+      return true;
+    }
+  );
 }
 
 function addMovie(title, score) {
