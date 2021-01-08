@@ -1,15 +1,17 @@
 type Movie {
-  id: Int!
-  name: String!
+  title: String!
   score: Int!
 }
 
 type Query {
-  movies: [Movie]!
-  movie(id: Int!): Movie
+  movies: [Movie]
+  movie(title: String!): Movie
+  insertTestDB: Boolean
+  deleteAll: Boolean
 }
 
 type Mutation {
-  addMovie(name: String!, score: Int!): Movie!
-  deleteMovie(id: Int!): Boolean!
+  addMovie(title: String!, score: Int!): Movie!
+  deleteMovie(title: String!): Boolean!
+  updateMovie(title: String!, score: Int, update_title: String): Movie
 }
