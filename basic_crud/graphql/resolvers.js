@@ -1,12 +1,13 @@
-const person = {
-    name: "test1",
-    age: 17,
-    gender: "male"
-}
+import { getMovies, getById, addMovie, deleteMovie } from "./db";
 
-const resolvers= {
-    Query:{
-        person: ()=> person
-    }
-}
+const resolvers = {
+  Query: {
+    movies: () => getMovies(),
+    movie: (_, { id }) => getById(id),
+  },
+  Mutation: {
+    addMovie: (_, { name, score }) => addMovie(name, score),
+    deleteMovie: (_, { id }) => deleteMovie(id),
+  },
+};
 export default resolvers;
