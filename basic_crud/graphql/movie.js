@@ -66,7 +66,7 @@ function getByTitle(title) {
 }
 
 function updateMovie(title, score = null, update_title = null) {
-  Movie.findOne(
+  const updatedMovie = Movie.findOne(
     {
       title: title,
     },
@@ -85,10 +85,12 @@ function updateMovie(title, score = null, update_title = null) {
       } else if (score != null && update_title == null) {
         movie.score = score;
         movie.save();
+      } else {
+        return false;
       }
-      return true;
     }
   );
+  return updatedMovie;
 }
 
 function deleteMovie(title) {
