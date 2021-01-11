@@ -44,9 +44,9 @@ async function insertTestDB() {
   }
 }
 
-function getMovies() {
+async function getMovies() {
   try {
-    const movies = Movie.find({});
+    const movies = await Movie.find({});
     return movies;
   } catch (err) {
     console.log(err);
@@ -54,9 +54,9 @@ function getMovies() {
   }
 }
 
-function getByTitle(title) {
+async function getByTitle(title) {
   try {
-    const finded_movie = Movie.findOne({ title: title }).exec();
+    const finded_movie = await Movie.findOne({ title: title });
     return finded_movie;
   } catch (err) {
     console.log(err);
@@ -64,42 +64,22 @@ function getByTitle(title) {
   }
 }
 
-async function updateMovie(title, score = null, update_title = null) {
+async function updateMovie(title, score) {
   // Todo. ID 값 추가해서 쉽게 가도록 고치자.
-  //
-  // try{
-  //   const updateMovie = await Movie.findOneAndUpdate({
-  //     title: title,
-  //   });
-  //   const updatedMovie = await Movie.Update({})
-  // }catch(err){
-  //   //
-  // }
-  const updatedMovie = Movie.findOne(
-    {
-      title: title,
-    },
-    function (err, movie) {
-      if (err) {
-        console.log(err);
-        return false;
+  try {
+    const updated_movie = await Movie.findOneAndUpdate(
+      {
+        title: title,
+      },
+      {
+        score: score,
       }
-      if (score != null && update_title != null) {
-        movie.title = update_title;
-        movie.score = score;
-        movie.save();
-      } else if (score == null && update_title != null) {
-        movie.title = update_title;
-        movie.save();
-      } else if (score != null && update_title == null) {
-        movie.score = score;
-        movie.save();
-      } else {
-        return false;
-      }
-    }
-  );
-  return updatedMovie;
+    );
+    return updated_movie;
+  } catch (err) {
+    console.log(err);
+    throw err;
+  }
 }
 
 async function deleteMovie(title) {

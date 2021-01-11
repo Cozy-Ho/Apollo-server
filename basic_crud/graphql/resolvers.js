@@ -16,8 +16,7 @@ const resolvers = {
   Mutation: {
     addMovie: (_, { title, score }) => addMovie(title, score),
     deleteMovie: (_, { title }) => deleteMovie(title),
-    updateMovie: (_, { title, score, update_title }) =>
-      updateMovie(title, score, update_title),
+    updateMovie: (_, { title, score }) => updateMovie(title, score),
     insertTestDB: () => insertTestDB(),
     deleteAll: () => deleteAll(),
   },
