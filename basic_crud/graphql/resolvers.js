@@ -10,7 +10,7 @@ import {
 
 const resolvers = {
   Query: {
-    movies: () => getMovies(),
+    movies: (_, { orderby }) => getMovies(orderby),
     movie: (_, { title }) => getByTitle(title),
   },
   Mutation: {

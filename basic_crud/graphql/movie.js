@@ -44,9 +44,14 @@ async function insertTestDB() {
   }
 }
 
-async function getMovies() {
+async function getMovies(orderby = null) {
   try {
-    const movies = await Movie.find({});
+    let movies;
+    if (orderby) {
+      movies = await Movie.find({}).sort(orderby);
+      return movies;
+    }
+    movies = await Movie.find({});
     return movies;
   } catch (err) {
     console.log(err);

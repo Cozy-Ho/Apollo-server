@@ -8,7 +8,7 @@ const movieSchema = new Schema({
     required: true,
   },
   score: {
-    type: String,
+    type: Number,
     required: false,
   },
 });

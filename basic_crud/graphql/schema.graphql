@@ -4,7 +4,8 @@ type Movie {
 }
 
 type Query {
-  movies: [Movie]
+  # movies: [Movie]
+  movies(orderby: SortMethod): [Movie]
   movie(title: String!): Movie
 }
 
@@ -14,4 +15,17 @@ type Mutation {
   updateMovie(title: String!, score: Int): Movie!
   insertTestDB: Boolean
   deleteAll: Boolean
+}
+
+# sorting method
+
+input SortMethod {
+  title: Sort
+  score: Sort
+  createdAt: Sort
+}
+
+enum Sort {
+  asc
+  desc
 }
