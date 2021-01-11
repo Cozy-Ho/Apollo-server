@@ -7,6 +7,7 @@ type Query {
   # movies: [Movie]
   movies(orderby: SortMethod): [Movie]
   movie(title: String!): Movie
+  pageMovies(perpage: Int!, curpage: Int!): [Movie]
 }
 
 type Mutation {

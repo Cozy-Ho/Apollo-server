@@ -1,5 +1,6 @@
 import {
   getMovies,
+  pageMovies,
   getByTitle,
   addMovie,
   deleteMovie,
@@ -12,6 +13,7 @@ const resolvers = {
   Query: {
     movies: (_, { orderby }) => getMovies(orderby),
     movie: (_, { title }) => getByTitle(title),
+    pageMovies: (_, { perpage, curpage }) => pageMovies(perpage, curpage),
   },
   Mutation: {
     addMovie: (_, { title, score }) => addMovie(title, score),

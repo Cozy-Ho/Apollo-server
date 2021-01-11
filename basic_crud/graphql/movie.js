@@ -44,9 +44,23 @@ async function insertTestDB() {
   }
 }
 
+async function pageMovies(perpage, curpage) {
+  try {
+    const movies = await Movie.find({})
+      .limit(perpage)
+      .skip(perpage * (curpage - 1));
+
+    return movies;
+  } catch (err) {
+    console.log(err);
+    throw err;
+  }
+}
+
 async function getMovies(orderby = null) {
   try {
     let movies;
+    // 정렬 옵션이 있을때 정렬해서 return.
     if (orderby) {
       movies = await Movie.find({}).sort(orderby);
       return movies;
@@ -124,6 +138,7 @@ async function deleteAll() {
 
 module.exports = {
   getMovies,
+  pageMovies,
   getByTitle,
   addMovie,
   deleteMovie,
