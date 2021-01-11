@@ -49,7 +49,6 @@ async function pageMovies(perpage, curpage) {
     const movies = await Movie.find({})
       .limit(perpage)
       .skip(perpage * (curpage - 1));
-
     return movies;
   } catch (err) {
     console.log(err);
