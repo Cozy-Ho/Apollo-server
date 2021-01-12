@@ -8,14 +8,23 @@ type Query {
   movies(orderby: SortMethod): [Movie]
   movie(title: String!): Movie
   pageMovies(perpage: Int!, curpage: Int!): [Movie]
+
+  # Dynamo_db
+  dynamo_getMovies: [Movie]
+  dynamo_findMovie(title: String!): [Movie]
 }
 
 type Mutation {
   addMovie(title: String!, score: Int!): Movie!
   deleteMovie(title: String!): Boolean
-  updateMovie(title: String!, score: Int): Movie!
+  updateMovie(title: String!, score: Int!): Movie!
   insertTestDB: Boolean
   deleteAll: Boolean
+
+  #Dynamo_db
+  dynamo_addMovie(title: String!, score: Int!): Movie!
+  dynamo_deleteMovie(title: String!): Boolean!
+  dynamo_updateMovie(title: String!, score: Int!): Movie!
 }
 
 # for sorting
