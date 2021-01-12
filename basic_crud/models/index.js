@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 mongoose.Promise = global.Promise;
 
-const MONGO_URL = `mongodb://admin:admin@localhost:27017/admin`;
+const MONGO_URL = `mongodb://admin:adminpw@localhost:27017/admin`;
 // Connect to mongoDB
 module.exports = () => {
   mongoose

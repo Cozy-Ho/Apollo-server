@@ -18,8 +18,7 @@ type Mutation {
   deleteAll: Boolean
 }
 
-# sorting method
-
+# for sorting
 input SortMethod {
   title: Sort
   score: Sort
