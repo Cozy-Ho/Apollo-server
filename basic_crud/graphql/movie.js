@@ -1,38 +1,46 @@
 import Movie from "../models/movies";
+import { v4 as uuidv4 } from "uuid";
 
-// interface.js 로 옮길것.
 async function insertTestDB() {
   try {
     await Movie.insertMany([
       {
+        id: uuidv4(),
         title: "test1",
         score: 1,
       },
       {
+        id: uuidv4(),
         title: "test2",
         score: 2,
       },
       {
+        id: uuidv4(),
         title: "test3",
         score: 3,
       },
       {
+        id: uuidv4(),
         title: "test4",
         score: 54,
       },
       {
+        id: uuidv4(),
         title: "jan",
         score: 40,
       },
       {
+        id: uuidv4(),
         title: "fev",
         score: 71,
       },
       {
+        id: uuidv4(),
         title: "dev",
         score: 90,
       },
       {
+        id: uuidv4(),
         title: "feba",
         score: 39,
       },
@@ -105,6 +113,7 @@ async function deleteMovie(title) {
 async function addMovie(title, score) {
   try {
     const addedMovie = await Movie.create({
+      id: uuidv4(),
       title: title,
       score: score,
     });

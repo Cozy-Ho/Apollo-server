@@ -1,4 +1,6 @@
 import {
+  insertTestDB,
+  deleteAll,
   setDatabase,
   getMovie,
   addMovie,

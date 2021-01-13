@@ -1,4 +1,5 @@
 import Movie from "../models/dynamo_movies";
+import { v4 as uuidv4 } from "uuid";
 
 async function getMovie(
   title = null,
@@ -17,16 +18,7 @@ async function getMovie(
 
       // todo
       if (order == "asc") {
-        movies = await Movie.scan().exec(function (err, data) {
-          if (err) {
-            console.log(err);
-            throw err;
-          }
-          data.sort();
-          console.log(data);
-          return data;
-        });
-        // movies = await Movie.query("title").eq(key[0]).sort("ascending").exec();
+        movies = await Movie.query(key[0]).eq(key[0]).sort("ascending").exec();
         // console.log(movies);
       } else if (order == "desc") {
         // movies = await Movie.scan().exec().sort("descending").exec();
@@ -35,7 +27,6 @@ async function getMovie(
       }
     } else if (curpage != null && perpage != null) {
       //   todo
-
       movies = await Movie.scan().limit(perpage).exec();
     } else {
       movies = await Movie.scan().exec();
@@ -48,6 +39,7 @@ async function getMovie(
 
 async function addMovie(title, score) {
   const result = new Movie({
+    id: uuidv4(),
     title: title,
     score: score,
   });
@@ -62,11 +54,14 @@ async function addMovie(title, score) {
 
 async function deleteMovie(title) {
   try {
-    const result = await Movie.get({ title: title });
-    console.log(result);
-    if (result != null) {
-      result.delete();
+    const exist = await Movie.scan({ title: title }).exec();
+    // console.log(result);
+    if (exist != null) {
+      const id = exist.toJSON()[0].id;
+      await Movie.delete({ id: id });
       return true;
+    } else {
+      throw err;
     }
   } catch (err) {
     console.log(err);
@@ -77,13 +72,15 @@ async function deleteMovie(title) {
 // title 없는 내용 update 시 예외처리 추가할것.
 async function updateMovie(title, score) {
   try {
-    const exist = await Movie.get({ title: title });
-
+    const exist = await Movie.scan({ title: title }).exec();
+    // console.log(exist);
     if (exist != null) {
-      const result = await Movie.update({ title: title }, { score: score });
+      const id = exist.toJSON()[0].id;
+      console.log(id);
+      const result = await Movie.update({ id: id }, { score: score });
       return result;
     } else {
-      return null;
+      throw err;
     }
   } catch (err) {
     console.log(err);

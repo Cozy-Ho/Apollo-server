@@ -2,6 +2,36 @@ import mongo_movie from "./movie";
 import dynamo_movie from "./dynamo_movie";
 import config from "../config/config";
 
+async function insertTestDB() {
+  try {
+    if (config.select == "mongo") {
+      return await mongo_movie.insertTestDB();
+    } else if (config.select == "dynamo") {
+      return await dynamo_movie.insertTestDB();
+    } else {
+      throw err;
+    }
+  } catch (err) {
+    console.log(err);
+    throw err;
+  }
+}
+
+async function deleteAll() {
+  try {
+    if (config.select == "mongo") {
+      return await mongo_movie.deleteAll();
+    } else if (config.select == "dynamo") {
+      return await dynamo_movie.deleteAll();
+    } else {
+      throw err;
+    }
+  } catch (err) {
+    console.log(err);
+    throw err;
+  }
+}
+
 async function setDatabase(flag) {
   try {
     if (flag == 0) {
@@ -75,6 +105,8 @@ async function deleteMovie(title) {
 }
 
 module.exports = {
+  insertTestDB,
+  deleteAll,
   setDatabase,
   getMovie,
   addMovie,

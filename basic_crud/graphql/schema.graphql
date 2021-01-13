@@ -1,4 +1,5 @@
 type Movie {
+  id: String!
   title: String!
   score: Int!
 }

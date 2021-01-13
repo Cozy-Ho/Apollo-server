@@ -9,7 +9,8 @@
     "dotenv": "^8.2.0",
     "dynamoose": "^2.5.0",
     "graphql-yoga": "^1.18.3",
-    "mongoose": "^5.11.10"
+    "mongoose": "^5.11.10",
+    "uuid": "^8.3.2"
   },
   "scripts": {
     "start": "nodemon --exec babel-node app.js"
