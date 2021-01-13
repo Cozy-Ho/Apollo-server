@@ -1,3 +1,18 @@
+/*
+ENV_FORMAT
+
+    MONGO_USER_NAME=
+    MONGO_USER_PW=
+    MONGO_TABLE_NAME=
+    MONGO_HOST=
+    MONGO_PORT=
+
+    AWS_ACCESS_KEY_ID=
+    AWS_SECRET_ACCESS_KEY=
+    AWS_DEFAULT_REGION=
+ 
+*/
+
 import path from "path";
 import dotenv from "dotenv";
 
