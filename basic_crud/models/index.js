@@ -1,29 +1,36 @@
-// import mongoose from "mongoose";
-
-// mongoose.Promise = global.Promise;
-
-// const MONGO_URL = `mongodb://admin:adminpw@localhost:27017/admin`;
-// // Connect to mongoDB
-// module.exports = () => {
-//   mongoose
-//     .connect(MONGO_URL, {
-//       useNewUrlParser: true,
-//       useUnifiedTopology: true,
-//     })
-//     .then(() => {
-//       console.log("MongoDB Connected");
-//     })
-//     .catch((err) => {
-//       console.log(err);
-//     });
-// };
-
-// dynamoose setting.
+import mongoose from "mongoose";
 import * as dynamoose from "dynamoose";
+import config from "../config/config";
 
-module.exports = () => {
+mongoose.Promise = global.Promise;
+const mongo = config.db.mongo;
+
+const MONGO_URL = `mongodb://${mongo.username}:${mongo.password}@${mongo.host}:${mongo.port}/${mongo.tablename}`;
+// Connect to mongoDB
+function conn_mongo() {
+  mongoose
+    .connect(MONGO_URL, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    })
+    .then(() => {
+      console.log("MongoDB Connected!!");
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+}
+
+function conn_dynamo() {
   dynamoose.aws.sdk.config.update({
-    region: "us-east-2",
+    accessKeyId: config.aws.accessid,
+    secretAccessKey: config.aws.scretid,
+    region: config.aws.region,
   });
-  console.log("Dynamo_conn Setted.");
+  console.log("DynamoDB Connected!!");
+}
+
+module.exports = {
+  conn_mongo,
+  conn_dynamo,
 };

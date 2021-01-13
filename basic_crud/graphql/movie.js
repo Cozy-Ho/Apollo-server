@@ -1,5 +1,6 @@
 import Movie from "../models/movies";
 
+// interface.js 로 옮길것.
 async function insertTestDB() {
   try {
     await Movie.insertMany([
@@ -44,38 +45,26 @@ async function insertTestDB() {
   }
 }
 
-async function pageMovies(perpage, curpage) {
-  try {
-    const movies = await Movie.find({})
-      .limit(perpage)
-      .skip(perpage * (curpage - 1));
-    return movies;
-  } catch (err) {
-    console.log(err);
-    throw err;
-  }
-}
-
-async function getMovies(orderby = null) {
+async function getMovie(
+  title = null,
+  curpage = null,
+  perpage = null,
+  orderby = null
+) {
   try {
     let movies;
-    // 정렬 옵션이 있을때 정렬해서 return.
-    if (orderby) {
+    if (title) {
+      movies = await Movie.find({ title: title });
+    } else if (orderby) {
       movies = await Movie.find({}).sort(orderby);
-      return movies;
+    } else if (curpage != null && perpage != null) {
+      movies = await Movie.find({})
+        .limit(perpage)
+        .skip(perpage * (curpage - 1));
+    } else {
+      movies = await Movie.find({});
     }
-    movies = await Movie.find({});
     return movies;
-  } catch (err) {
-    console.log(err);
-    throw err;
-  }
-}
-
-async function getByTitle(title) {
-  try {
-    const finded_movie = await Movie.findOne({ title: title });
-    return finded_movie;
   } catch (err) {
     console.log(err);
     throw err;
@@ -136,9 +125,7 @@ async function deleteAll() {
 }
 
 module.exports = {
-  getMovies,
-  pageMovies,
-  getByTitle,
+  getMovie,
   addMovie,
   deleteMovie,
   updateMovie,

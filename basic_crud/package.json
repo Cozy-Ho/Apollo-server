@@ -6,6 +6,7 @@
   "dependencies": {
     "aws-sdk": "^2.825.0",
     "babel-cli": "^6.26.0",
+    "dotenv": "^8.2.0",
     "dynamoose": "^2.5.0",
     "graphql-yoga": "^1.18.3",
     "mongoose": "^5.11.10"

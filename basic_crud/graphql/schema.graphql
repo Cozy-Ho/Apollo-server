@@ -5,13 +5,12 @@ type Movie {
 
 type Query {
   # movies: [Movie]
-  movies(orderby: SortMethod): [Movie]
-  movie(title: String!): Movie
-  pageMovies(perpage: Int!, curpage: Int!): [Movie]
-
-  # Dynamo_db
-  dynamo_getMovies: [Movie]
-  dynamo_findMovie(title: String!): [Movie]
+  getMovie(
+    title: String
+    curpage: Int
+    perpage: Int
+    orderby: SortMethod
+  ): [Movie]
 }
 
 type Mutation {
@@ -21,10 +20,7 @@ type Mutation {
   insertTestDB: Boolean
   deleteAll: Boolean
 
-  #Dynamo_db
-  dynamo_addMovie(title: String!, score: Int!): Movie!
-  dynamo_deleteMovie(title: String!): Boolean!
-  dynamo_updateMovie(title: String!, score: Int!): Movie!
+  setDatabase(flag: Int!): String!
 }
 
 # for sorting
