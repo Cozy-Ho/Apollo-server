@@ -17,17 +17,32 @@ async function getMovie(
       console.log(key, order);
 
       // todo
+      // 정렬 방법 찾아내기.
       if (order == "asc") {
         movies = await Movie.query(key[0]).eq(key[0]).sort("ascending").exec();
         // console.log(movies);
       } else if (order == "desc") {
-        // movies = await Movie.scan().exec().sort("descending").exec();
+        movies = await Movie.query("id").not("").sort("ascending").exec();
       } else {
         movies = null;
       }
     } else if (curpage != null && perpage != null) {
-      //   todo
-      movies = await Movie.scan().limit(perpage).exec();
+      // todo
+      if (curpage != 1) {
+        const last = await Movie.scan()
+          .limit(perpage * (curpage - 1))
+          .exec();
+        console.log(last.lastKey);
+        const lastkey = last.lastKey;
+        if (lastkey) {
+          movies = await Movie.scan().startAt(lastkey).limit(perpage).exec();
+        } else {
+          movies = null;
+        }
+        // 1페이지 일 경우.
+      } else {
+        movies = await Movie.scan().limit(perpage).exec();
+      }
     } else {
       movies = await Movie.scan().exec();
     }
@@ -55,7 +70,7 @@ async function addMovie(title, score) {
 async function deleteMovie(title) {
   try {
     const exist = await Movie.scan({ title: title }).exec();
-    // console.log(result);
+
     if (exist != null) {
       const id = exist.toJSON()[0].id;
       await Movie.delete({ id: id });
@@ -69,11 +84,10 @@ async function deleteMovie(title) {
   }
 }
 
-// title 없는 내용 update 시 예외처리 추가할것.
 async function updateMovie(title, score) {
   try {
     const exist = await Movie.scan({ title: title }).exec();
-    // console.log(exist);
+
     if (exist != null) {
       const id = exist.toJSON()[0].id;
       console.log(id);

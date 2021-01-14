@@ -26,6 +26,7 @@ type Mutation {
 
 # for sorting
 input SortMethod {
+  id: Sort
   title: Sort
   score: Sort
   createdAt: Sort

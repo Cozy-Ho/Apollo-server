@@ -2,12 +2,12 @@ import mongo_movie from "./movie";
 import dynamo_movie from "./dynamo_movie";
 import config from "../config/config";
 
-async function insertTestDB() {
+function insertTestDB() {
   try {
     if (config.select == "mongo") {
-      return await mongo_movie.insertTestDB();
+      return mongo_movie.insertTestDB();
     } else if (config.select == "dynamo") {
-      return await dynamo_movie.insertTestDB();
+      return dynamo_movie.insertTestDB();
     } else {
       throw err;
     }
