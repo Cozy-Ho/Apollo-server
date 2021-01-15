@@ -1,26 +1,27 @@
 import dynamoose from "dynamoose";
 
-const movieSchema = new dynamoose.Schema(
-  {
-    id: {
-      type: String,
-      required: true,
-    },
-    title: {
-      type: String,
-      required: true,
-    },
-    score: {
-      type: Number,
-      required: false,
-    },
+const movieSchema = new dynamoose.Schema({
+  id: {
+    type: String,
+    required: true,
+    unique: true,
   },
-  {
-    timestamps: {
-      createdAt: ["createDate", "creation"],
-      updatedAt: ["updateDate", "updated"],
-    },
-  }
-);
+  title: {
+    type: String,
+    required: true,
+  },
+  desc: {
+    type: String,
+    required: false,
+  },
+  score: {
+    type: Number,
+    required: false,
+  },
+  watched: {
+    type: Boolean,
+    required: false,
+  },
+});
 
-module.exports = dynamoose.model("test02-movie", movieSchema);
+module.exports = dynamoose.model("test02-movie2", movieSchema);

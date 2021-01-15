@@ -11,8 +11,16 @@ const movieSchema = new Schema({
     type: String,
     required: true,
   },
+  desc: {
+    type: String,
+    required: false,
+  },
   score: {
     type: Number,
+    required: false,
+  },
+  watched: {
+    type: Boolean,
     required: false,
   },
 });

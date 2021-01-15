@@ -1,50 +1,83 @@
 import Movie from "../models/dynamo_movies";
 import { v4 as uuidv4 } from "uuid";
 
-async function getMovie(
+function order(movies, orderby) {
+  // order
+  let movie_arr = movies.toJSON();
+  let key = Object.getOwnPropertyNames(orderby);
+  let order = orderby[key[0]];
+  key = key[0];
+  console.log(key, order);
+  if (order == "asc") {
+    movies = movie_arr.sort((a, b) => (a[key] > b[key] ? 1 : -1));
+  } else {
+    movies = movie_arr.sort((a, b) => (a[key] > b[key] ? -1 : 1));
+  }
+
+  return movies;
+}
+
+function page(movies, curpage, perpage) {
+  // console.log(movies);
+  const max = movies.count;
+  let movie_arr;
+  console.log(movies);
+
+  if (typeof movies == "object") {
+    movie_arr = movies.toJSON();
+  } else {
+    movie_arr = movies;
+  }
+  let offset = (curpage - 1) * perpage;
+  // console.log(movie_arry);
+  if (curpage <= max / perpage) {
+    movies = movie_arr.slice(offset, offset + perpage);
+  } else {
+    movies = null;
+  }
+  return movies;
+}
+
+async function searchMovie(
   title = null,
+  score = null,
+  watched = null,
+  orderby = null,
   curpage = null,
   perpage = null,
-  orderby = null
+  err = null
 ) {
   try {
     let movies;
-    if (title) {
-      movies = await Movie.scan({ title: title }).exec();
+    if (title != null || score != null || watched != null) {
+      // search
+      if (title) {
+        movies = await Movie.scan({ title: title }).exec();
+      } else if (score) {
+        movies = await Movie.scan({ score: score }).exec();
+      } else {
+        movies = await Movie.scan({ watched: watched }).exec();
+      }
+      // search + sort + page
+      if (orderby != null && curpage != null && perpage != null) {
+        movies = await order(movies, orderby);
+        console.log("PASS");
+        movies = page(movies, curpage, perpage);
+      }
+      // search + sort
+      if (orderby != null && curpage != null && perpage != null) {
+        movies = await order(movies, orderby);
+      }
     } else if (orderby) {
-      let key = Object.getOwnPropertyNames(orderby);
-      let order = orderby[key[0]];
-      console.log(key, order);
-
-      // todo
-      // 정렬 방법 찾아내기.
-      if (order == "asc") {
-        movies = await Movie.query(key[0]).eq(key[0]).sort("ascending").exec();
-        // console.log(movies);
-      } else if (order == "desc") {
-        movies = await Movie.query("id").not("").sort("ascending").exec();
-      } else {
-        movies = null;
-      }
+      // sort
+      movies = await Movie.scan({}).exec();
+      movies = order(movies, orderby);
     } else if (curpage != null && perpage != null) {
-      // todo
-      if (curpage != 1) {
-        const last = await Movie.scan()
-          .limit(perpage * (curpage - 1))
-          .exec();
-        console.log(last.lastKey);
-        const lastkey = last.lastKey;
-        if (lastkey) {
-          movies = await Movie.scan().startAt(lastkey).limit(perpage).exec();
-        } else {
-          movies = null;
-        }
-        // 1페이지 일 경우.
-      } else {
-        movies = await Movie.scan().limit(perpage).exec();
-      }
+      // page
+      movies = await Movie.scan({}).exec();
+      movies = page(movies, curpage, perpage);
     } else {
-      movies = await Movie.scan().exec();
+      movies = await Movie.scan({}).exec();
     }
     return movies;
   } catch (err) {
@@ -52,11 +85,13 @@ async function getMovie(
   }
 }
 
-async function addMovie(title, score) {
+async function addMovie(title, score = 0, desc = "", watched = false) {
   const result = new Movie({
     id: uuidv4(),
     title: title,
+    desc: desc,
     score: score,
+    watched: watched,
   });
   try {
     await result.save();
@@ -69,18 +104,17 @@ async function addMovie(title, score) {
 
 async function deleteMovie(title) {
   try {
-    const exist = await Movie.scan({ title: title }).exec();
-
-    if (exist != null) {
+    let exist = await Movie.scan({ title: title }).exec();
+    if (exist.count != 0) {
       const id = exist.toJSON()[0].id;
       await Movie.delete({ id: id });
-      return true;
+      return "삭제 완료";
     } else {
-      throw err;
+      return "삭제하려는 데이터가 DB에 존재하지 않습니다.";
     }
   } catch (err) {
     console.log(err);
-    return false;
+    return "삭제 실패! 에러가 발생했습니다.";
   }
 }
 
@@ -103,7 +137,7 @@ async function updateMovie(title, score) {
 }
 
 module.exports = {
-  getMovie,
+  searchMovie,
   addMovie,
   deleteMovie,
   updateMovie,

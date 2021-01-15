@@ -1,36 +1,94 @@
+# Todo
+# Schema 정리 - 6개 Atr.
+# ID(String), bool, union, int, string, string
+
+# Query name 정리
+# getMovie(search(id) uniq값 하나 return)
+# searchMovie(search(title), sort, page)
+# createMovie, updateMovie, removeMovie
+
 type Movie {
   id: String!
   title: String!
-  score: Int!
+  score: Int
+  desc: String
+  watched: Boolean
+  err: Err
 }
 
 type Query {
   # movies: [Movie]
-  getMovie(
+  getMovie(id: String!): Movie!
+  searchMovie(
     title: String
+    score: Int
+    watched: Boolean
+    orderby: SortMethod
     curpage: Int
     perpage: Int
-    orderby: SortMethod
+    err: [ErrInput]
   ): [Movie]
 }
 
 type Mutation {
-  addMovie(title: String!, score: Int!): Movie!
-  deleteMovie(title: String!): Boolean
+  addMovie(title: String!, score: Int, desc: String, watched: Boolean): Movie!
+  deleteMovie(title: String!): String
   updateMovie(title: String!, score: Int!): Movie!
   insertTestDB: Boolean
   deleteAll: Boolean
-
   setDatabase(flag: Int!): String!
+  register: Err
 }
+
+type ValidationError {
+  field: String
+  msg: String
+}
+type TimeoutError {
+  reason: String
+  seconds: Int
+}
+
+union Err = ValidationError | TimeoutError
+
+input ErrInput {
+  isErr: Boolean
+  field: String
+  msg: String
+  reason: String
+  seconds: Int
+}
+
+# input Settinginput {
+#   isSort: Boolean
+#   orderby: Order
+#   sortby: Sort
+#   isPage: Boolean
+#   curpage: Int
+#   perpage: Int
+# }
+# union Setting = isSort | isPage
+# type isSort {
+#   orderby: Order
+#   sortby: Sort
+# }
+# type isPage {
+#   curpage: Int
+#   perpage: Int
+# }
 
 # for sorting
 input SortMethod {
   id: Sort
   title: Sort
-  score: Sort
-  createdAt: Sort
+  desc: Sort
 }
+
+# enum Order {
+#   id
+#   title
+#   desc
+# }
 
 enum Sort {
   asc

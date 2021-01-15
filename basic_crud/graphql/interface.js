@@ -47,12 +47,28 @@ async function setDatabase(flag) {
   }
 }
 
-async function getMovie(title, curpage, perpage, orderby) {
+async function searchMovie(id, title, score, orderby, curpage, perpage, err) {
   try {
     if (config.select == "mongo") {
-      return await mongo_movie.getMovie(title, curpage, perpage, orderby);
+      return await mongo_movie.searchMovie(
+        id,
+        title,
+        score,
+        orderby,
+        curpage,
+        perpage,
+        err
+      );
     } else if (config.select == "dynamo") {
-      return await dynamo_movie.getMovie(title, curpage, perpage, orderby);
+      return await dynamo_movie.searchMovie(
+        id,
+        title,
+        score,
+        orderby,
+        curpage,
+        perpage,
+        err
+      );
     } else {
       throw err;
     }
@@ -108,7 +124,7 @@ module.exports = {
   insertTestDB,
   deleteAll,
   setDatabase,
-  getMovie,
+  searchMovie,
   addMovie,
   updateMovie,
   deleteMovie,

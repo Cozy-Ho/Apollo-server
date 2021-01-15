@@ -3,11 +3,17 @@ import resolvers from "./graphql/resolvers";
 import config from "./config/config";
 import db from "./models";
 
-// if (config.select == "mongo") {
-//   db.conn_mongo();
-// } else if (config.select == "dynamo") {
-//   db.conn_dynamo();
-// }
+let db_select = process.argv.slice(2)[0];
+// console.log(db_select);
+
+if (db_select == "mongo") {
+  config.select = "mongo";
+  console.log("DB selected : " + db_select);
+} else if (db_select == "dynamo") {
+  config.select = "dynamo";
+  console.log("DB selected : " + db_select);
+}
+
 db.conn_mongo();
 db.conn_dynamo();
 
@@ -16,7 +22,4 @@ const server = new GraphQLServer({
   resolvers,
 });
 
-// server.start(() => console.log("GraphQL Server is Running..."));
-server.start().then(() => {
-  console.log(`🚀  Server is ready!`);
-});
+server.start(() => console.log("🚀  GraphQL Server is Running..."));

@@ -103,10 +103,10 @@ async function deleteMovie(title) {
       title: title,
     });
     console.log(movie);
-    return true;
+    return "삭제 완료";
   } catch (err) {
     console.log(err);
-    return false;
+    return "삭제 실패";
   }
 }
 
