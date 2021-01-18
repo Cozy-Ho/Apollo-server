@@ -7,75 +7,75 @@ function order(movies, orderby) {
   let key = Object.getOwnPropertyNames(orderby);
   let order = orderby[key[0]];
   key = key[0];
-  console.log(key, order);
   if (order == "asc") {
     movies = movie_arr.sort((a, b) => (a[key] > b[key] ? 1 : -1));
   } else {
     movies = movie_arr.sort((a, b) => (a[key] > b[key] ? -1 : 1));
   }
-
   return movies;
 }
 
-function page(movies, curpage, perpage) {
+function page(movies, pagination) {
   // console.log(movies);
-  const max = movies.count;
+  let max;
   let movie_arr;
-  console.log(movies);
+  const curpage = pagination.curpage;
+  const perpage = pagination.perpage;
 
-  if (typeof movies == "object") {
+  if (movies.hasOwnProperty("toJSON")) {
     movie_arr = movies.toJSON();
+    max = movies.count;
   } else {
+    // json으로 변경되어 들어올 경우, movie_arr에 count속성이 없다..
+    // 이거때문에 하루 날린듯? 잘하자!
     movie_arr = movies;
+    max = movies.length;
   }
+  console.log(movie_arr);
+
   let offset = (curpage - 1) * perpage;
   // console.log(movie_arry);
-  if (curpage <= max / perpage) {
+  if (curpage <= max / perpage || 1 > max / perpage) {
     movies = movie_arr.slice(offset, offset + perpage);
   } else {
     movies = null;
   }
   return movies;
 }
+// title, score, watched, orderby, curpage, perpage, err
+async function searchMovie(args) {
+  let params = args;
 
-async function searchMovie(
-  title = null,
-  score = null,
-  watched = null,
-  orderby = null,
-  curpage = null,
-  perpage = null,
-  err = null
-) {
   try {
     let movies;
-    if (title != null || score != null || watched != null) {
-      // search
-      if (title) {
-        movies = await Movie.scan({ title: title }).exec();
-      } else if (score) {
-        movies = await Movie.scan({ score: score }).exec();
-      } else {
-        movies = await Movie.scan({ watched: watched }).exec();
+    if (params.search) {
+      // 1. search
+      movies = await Movie.scan(params.search).exec();
+
+      // 2. search + sort + page
+      if (params.orderby != null && params.pagination != null) {
+        movies = await order(movies, params.orderby);
+
+        movies = await page(movies, params.pagination);
+      } else if (params.orderby) {
+        // 3. search + sort
+        movies = await order(movies, params.orderby);
+      } else if (params.pagination) {
+        // 4. search + page
+        movies = await page(movies, params.pagination);
       }
-      // search + sort + page
-      if (orderby != null && curpage != null && perpage != null) {
-        movies = await order(movies, orderby);
-        console.log("PASS");
-        movies = page(movies, curpage, perpage);
-      }
-      // search + sort
-      if (orderby != null && curpage != null && perpage != null) {
-        movies = await order(movies, orderby);
-      }
-    } else if (orderby) {
-      // sort
+    } else if (params.orderby) {
+      // 5. sort
       movies = await Movie.scan({}).exec();
-      movies = order(movies, orderby);
-    } else if (curpage != null && perpage != null) {
-      // page
+      movies = order(movies, params.orderby);
+      // 6. sort + page
+      if (params.pagination) {
+        movies = page(movies, params.pagination);
+      }
+    } else if (params.pagination) {
+      // 7. page
       movies = await Movie.scan({}).exec();
-      movies = page(movies, curpage, perpage);
+      movies = page(movies, params.pagination);
     } else {
       movies = await Movie.scan({}).exec();
     }
@@ -85,16 +85,33 @@ async function searchMovie(
   }
 }
 
-async function addMovie(title, score = 0, desc = "", watched = false) {
-  const result = new Movie({
-    id: uuidv4(),
-    title: title,
-    desc: desc,
-    score: score,
-    watched: watched,
-  });
+async function getMovie(id) {
+  console.log(id);
+  let movies;
   try {
-    await result.save();
+    movies = await Movie.get({ id: id });
+    console.log(movies);
+    return movies;
+  } catch (err) {
+    console.log(err);
+    throw err;
+  }
+}
+
+async function createMovie(args) {
+  const info = args.info;
+
+  try {
+    const result = await Movie.create({
+      id: uuidv4(),
+      title: args.title,
+      desc: args.desc || "",
+      score: args.score || 0,
+      watched: args.watched || false,
+      info: info,
+    });
+    console.log(result);
+
     return result;
   } catch (err) {
     console.log(err);
@@ -102,34 +119,29 @@ async function addMovie(title, score = 0, desc = "", watched = false) {
   }
 }
 
-async function deleteMovie(title) {
+async function removeMovie(id) {
   try {
-    let exist = await Movie.scan({ title: title }).exec();
-    if (exist.count != 0) {
-      const id = exist.toJSON()[0].id;
-      await Movie.delete({ id: id });
-      return "삭제 완료";
-    } else {
-      return "삭제하려는 데이터가 DB에 존재하지 않습니다.";
-    }
+    await Movie.delete({ id: id });
+    return "삭제 완료";
   } catch (err) {
     console.log(err);
     return "삭제 실패! 에러가 발생했습니다.";
   }
 }
 
-async function updateMovie(title, score) {
+async function updateMovie(args) {
+  const origin = await Movie.get({ id: args.id });
+  console.log(origin);
+  const update_query = {
+    title: args.title || origin.title,
+    score: args.score || origin.score,
+    desc: args.desc || origin.desc,
+    watched: args.watched || origin.watched,
+    info: args.info || origin.info,
+  };
   try {
-    const exist = await Movie.scan({ title: title }).exec();
-
-    if (exist != null) {
-      const id = exist.toJSON()[0].id;
-      console.log(id);
-      const result = await Movie.update({ id: id }, { score: score });
-      return result;
-    } else {
-      throw err;
-    }
+    const result = await Movie.update({ id: args.id }, update_query);
+    return result;
   } catch (err) {
     console.log(err);
     throw err;
@@ -137,8 +149,9 @@ async function updateMovie(title, score) {
 }
 
 module.exports = {
+  getMovie,
   searchMovie,
-  addMovie,
-  deleteMovie,
+  createMovie,
+  removeMovie,
   updateMovie,
 };

@@ -1,6 +1,40 @@
 import Movie from "../models/movies";
 import { v4 as uuidv4 } from "uuid";
 
+function order(movies, orderby) {
+  // order
+  let movie_arr = movies;
+  let key = Object.getOwnPropertyNames(orderby);
+  let order = orderby[key[0]];
+  key = key[0];
+  if (order == "asc") {
+    movies = movie_arr.sort((a, b) => (a[key] > b[key] ? 1 : -1));
+  } else {
+    movies = movie_arr.sort((a, b) => (a[key] > b[key] ? -1 : 1));
+  }
+  return movies;
+}
+function page(movies, pagination) {
+  // console.log(movies);
+  let max;
+  let movie_arr;
+  const curpage = pagination.curpage;
+  const perpage = pagination.perpage;
+
+  movie_arr = movies;
+  max = movies.length;
+  console.log(movie_arr);
+
+  let offset = (curpage - 1) * perpage;
+  // console.log(movie_arry);
+  if (curpage <= max / perpage) {
+    movies = movie_arr.slice(offset, offset + perpage);
+  } else {
+    movies = null;
+  }
+  return movies;
+}
+
 async function insertTestDB() {
   try {
     await Movie.insertMany([
@@ -53,22 +87,48 @@ async function insertTestDB() {
   }
 }
 
-async function getMovie(
-  title = null,
-  curpage = null,
-  perpage = null,
-  orderby = null
-) {
+async function getMovie(id) {
   try {
     let movies;
-    if (title) {
-      movies = await Movie.find({ title: title });
-    } else if (orderby) {
-      movies = await Movie.find({}).sort(orderby);
-    } else if (curpage != null && perpage != null) {
-      movies = await Movie.find({})
-        .limit(perpage)
-        .skip(perpage * (curpage - 1));
+    movies = await Movie.findOne({ id: id });
+    return movies;
+  } catch (err) {
+    console.log(err);
+    throw err;
+  }
+}
+
+async function searchMovie(args) {
+  try {
+    let movies;
+
+    if (args.search) {
+      // 1. search
+      movies = await Movie.find(args.search);
+
+      // 2. search + sort + page
+      if (args.orderby != null && args.pagination != null) {
+        movies = order(movies, args.orderby);
+        movies = page(movies, args.pagination);
+      } else if (args.orderby) {
+        // 3. search + sort
+        console.log(movies);
+        movies = order(movies, args.orderby);
+      } else if (args.pagination) {
+        // 4. search + page
+        movies = page(movies, args.pagination);
+      }
+    } else if (args.orderby) {
+      // 5. sort
+      movies = await Movie.find({}).sort(args.orderby);
+      // 6. sort + page
+      if (args.pagination) {
+        movies = page(movies, args.pagination);
+      }
+    } else if (args.pagination) {
+      // 7. page
+      movies = await Movie.find({});
+      movies = page(movies, args.pagination);
     } else {
       movies = await Movie.find({});
     }
@@ -79,28 +139,35 @@ async function getMovie(
   }
 }
 
-async function updateMovie(title, score) {
-  // Todo. ID 값 추가해서 쉽게 가도록 고치자.
+async function updateMovie(args) {
+  const origin = await Movie.findOne({ id: args.id });
+  console.log(origin);
+  const update_query = {
+    title: args.title || origin.titile,
+    score: args.score || origin.score,
+    desc: args.desc || origin.desc,
+    watched: args.watched || origin.watched,
+    info: args.info || origin.info,
+  };
   try {
-    const updated_movie = await Movie.findOneAndUpdate(
+    const movie = await Movie.findOneAndUpdate(
       {
-        title: title,
+        id: args.id,
       },
-      {
-        score: score,
-      }
+      update_query
     );
-    return updated_movie;
+    console.log(movie);
+    return movie;
   } catch (err) {
     console.log(err);
     throw err;
   }
 }
 
-async function deleteMovie(title) {
+async function removeMovie(id) {
   try {
     const movie = await Movie.findOneAndDelete({
-      title: title,
+      id: id,
     });
     console.log(movie);
     return "삭제 완료";
@@ -110,14 +177,20 @@ async function deleteMovie(title) {
   }
 }
 
-async function addMovie(title, score) {
+async function createMovie(args) {
   try {
-    const addedMovie = await Movie.create({
+    const info = args.info;
+    console.log(info);
+    const movie = await Movie.create({
       id: uuidv4(),
-      title: title,
-      score: score,
+      title: args.title,
+      desc: args.desc || "",
+      score: args.score || 0,
+      watched: args.watched || false,
+      info: info,
     });
-    return addedMovie;
+    console.log(movie);
+    return movie;
   } catch (err) {
     console.log(err);
     throw err;
@@ -135,8 +208,9 @@ async function deleteAll() {
 
 module.exports = {
   getMovie,
-  addMovie,
-  deleteMovie,
+  searchMovie,
+  createMovie,
+  removeMovie,
   updateMovie,
   insertTestDB,
   deleteAll,

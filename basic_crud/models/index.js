@@ -30,6 +30,11 @@ function conn_dynamo() {
   console.log("DynamoDB Connected!!");
 }
 
+function conn_aws_sdk() {
+  //
+  console.log("AWS-SDK Connected!!");
+}
+
 module.exports = {
   conn_mongo,
   conn_dynamo,

@@ -23,6 +23,20 @@ const movieSchema = new Schema({
     type: Boolean,
     required: false,
   },
+  info: {
+    lang: {
+      type: String,
+      required: false,
+    },
+    subtitle: {
+      type: String,
+      required: false,
+    },
+    dubbing: {
+      type: String,
+      required: false,
+    },
+  },
 });
 
 module.exports = mongoose.model("Movie", movieSchema);

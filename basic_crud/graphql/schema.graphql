@@ -13,82 +13,73 @@ type Movie {
   score: Int
   desc: String
   watched: Boolean
-  err: Err
+  info: Info
 }
 
 type Query {
-  # movies: [Movie]
-  getMovie(id: String!): Movie!
+  getMovie(id: String!): Movie
   searchMovie(
-    title: String
-    score: Int
-    watched: Boolean
+    search: SearchMethod
     orderby: SortMethod
-    curpage: Int
-    perpage: Int
-    err: [ErrInput]
+    pagination: PaginationMethod # err: [ErrInput]
   ): [Movie]
 }
 
 type Mutation {
-  addMovie(title: String!, score: Int, desc: String, watched: Boolean): Movie!
-  deleteMovie(title: String!): String
-  updateMovie(title: String!, score: Int!): Movie!
+  createMovie(
+    title: String!
+    score: Int
+    desc: String
+    watched: Boolean
+    info: InputInfo
+  ): Movie!
+  updateMovie(
+    id: String!
+    title: String
+    score: Int
+    desc: String
+    watched: Boolean
+    info: InputInfo
+  ): Movie!
+  removeMovie(id: String!): String
   insertTestDB: Boolean
   deleteAll: Boolean
   setDatabase(flag: Int!): String!
-  register: Err
 }
 
-type ValidationError {
-  field: String
-  msg: String
+type Sub {
+  subtitle: String
+  lang: String
 }
-type TimeoutError {
-  reason: String
-  seconds: Int
+type Dub {
+  dubbing: String
+  lang: String
 }
+union Info = Sub | Dub
 
-union Err = ValidationError | TimeoutError
-
-input ErrInput {
-  isErr: Boolean
-  field: String
-  msg: String
-  reason: String
-  seconds: Int
+input InputInfo {
+  lang: String
+  subtitle: String
+  dubbing: String
 }
 
-# input Settinginput {
-#   isSort: Boolean
-#   orderby: Order
-#   sortby: Sort
-#   isPage: Boolean
-#   curpage: Int
-#   perpage: Int
-# }
-# union Setting = isSort | isPage
-# type isSort {
-#   orderby: Order
-#   sortby: Sort
-# }
-# type isPage {
-#   curpage: Int
-#   perpage: Int
-# }
-
-# for sorting
 input SortMethod {
   id: Sort
   title: Sort
   desc: Sort
 }
 
-# enum Order {
-#   id
-#   title
-#   desc
-# }
+input SearchMethod {
+  title: String
+  score: Int
+  desc: String
+  watched: Boolean
+}
+
+input PaginationMethod {
+  curpage: Int
+  perpage: Int
+}
 
 enum Sort {
   asc

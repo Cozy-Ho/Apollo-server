@@ -47,28 +47,12 @@ async function setDatabase(flag) {
   }
 }
 
-async function searchMovie(id, title, score, orderby, curpage, perpage, err) {
+async function searchMovie(args) {
   try {
     if (config.select == "mongo") {
-      return await mongo_movie.searchMovie(
-        id,
-        title,
-        score,
-        orderby,
-        curpage,
-        perpage,
-        err
-      );
+      return await mongo_movie.searchMovie(args);
     } else if (config.select == "dynamo") {
-      return await dynamo_movie.searchMovie(
-        id,
-        title,
-        score,
-        orderby,
-        curpage,
-        perpage,
-        err
-      );
+      return await dynamo_movie.searchMovie(args);
     } else {
       throw err;
     }
@@ -78,12 +62,27 @@ async function searchMovie(id, title, score, orderby, curpage, perpage, err) {
   }
 }
 
-async function addMovie(title, score) {
+async function getMovie(id) {
   try {
     if (config.select == "mongo") {
-      return await mongo_movie.addMovie(title, score);
+      return await mongo_movie.getMovie(id);
     } else if (config.select == "dynamo") {
-      return await dynamo_movie.addMovie(title, score);
+      return await dynamo_movie.getMovie(id);
+    } else {
+      throw err;
+    }
+  } catch (err) {
+    console.log(err);
+    throw err;
+  }
+}
+
+async function createMovie(args) {
+  try {
+    if (config.select == "mongo") {
+      return await mongo_movie.createMovie(args);
+    } else if (config.select == "dynamo") {
+      return await dynamo_movie.createMovie(args);
     } else {
       throw err;
     }
@@ -92,12 +91,12 @@ async function addMovie(title, score) {
   }
 }
 
-async function updateMovie(title, score) {
+async function updateMovie(args) {
   try {
     if (config.select == "mongo") {
-      return await mongo_movie.updateMovie(title, score);
+      return await mongo_movie.updateMovie(args);
     } else if (config.select == "dynamo") {
-      return await dynamo_movie.updateMovie(title, score);
+      return await dynamo_movie.updateMovie(args);
     } else {
       throw err;
     }
@@ -106,12 +105,12 @@ async function updateMovie(title, score) {
   }
 }
 
-async function deleteMovie(title) {
+async function removeMovie(id) {
   try {
     if (config.select == "mongo") {
-      return await mongo_movie.deleteMovie(title);
+      return await mongo_movie.removeMovie(id);
     } else if (config.select == "dynamo") {
-      return await dynamo_movie.deleteMovie(title);
+      return await dynamo_movie.removeMovie(id);
     } else {
       throw err;
     }
@@ -125,7 +124,8 @@ module.exports = {
   deleteAll,
   setDatabase,
   searchMovie,
-  addMovie,
+  getMovie,
+  createMovie,
   updateMovie,
-  deleteMovie,
+  removeMovie,
 };
