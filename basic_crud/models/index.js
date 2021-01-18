@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import * as dynamoose from "dynamoose";
+import AWS from "aws-sdk";
 import config from "../config/config";
 
 mongoose.Promise = global.Promise;
@@ -31,7 +32,11 @@ function conn_dynamo() {
 }
 
 function conn_aws_sdk() {
-  //
+  AWS.config.update({
+    accessKeyId: config.aws.accessid,
+    secretAccessKey: config.aws.scretid,
+    region: config.aws.region,
+  });
   console.log("AWS-SDK Connected!!");
 }
 
