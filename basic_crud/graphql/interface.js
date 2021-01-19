@@ -1,5 +1,6 @@
 import mongo_movie from "./movie";
 import dynamo_movie from "./dynamo_movie";
+import aws_movie from "./aws-sdk";
 import config from "../config/config";
 
 function insertTestDB() {
@@ -40,6 +41,9 @@ async function setDatabase(flag) {
     } else if (flag == 1) {
       config.select = "dynamo";
       return "Set Database as DynamoDB";
+    } else if (flag == 2) {
+      config.select = "aws";
+      return "Seted AWS-SDK";
     }
   } catch (err) {
     console.log(err);
@@ -54,7 +58,7 @@ async function searchMovie(args) {
     } else if (config.select == "dynamo") {
       return await dynamo_movie.searchMovie(args);
     } else {
-      throw err;
+      return await aws_movie.searchMovie(args);
     }
   } catch (err) {
     console.log(err);
@@ -69,7 +73,7 @@ async function getMovie(id) {
     } else if (config.select == "dynamo") {
       return await dynamo_movie.getMovie(id);
     } else {
-      throw err;
+      return await aws_movie.getMovie(id);
     }
   } catch (err) {
     console.log(err);
@@ -84,7 +88,7 @@ async function createMovie(args) {
     } else if (config.select == "dynamo") {
       return await dynamo_movie.createMovie(args);
     } else {
-      throw err;
+      return await aws_movie.createMovie(args);
     }
   } catch (err) {
     console.log(err);
@@ -98,7 +102,7 @@ async function updateMovie(args) {
     } else if (config.select == "dynamo") {
       return await dynamo_movie.updateMovie(args);
     } else {
-      throw err;
+      return await aws_movie.updateMovie(args);
     }
   } catch (err) {
     console.log(err);
@@ -112,7 +116,7 @@ async function removeMovie(id) {
     } else if (config.select == "dynamo") {
       return await dynamo_movie.removeMovie(id);
     } else {
-      throw err;
+      return await aws_movie.removeMovie(id);
     }
   } catch (err) {
     console.log(err);

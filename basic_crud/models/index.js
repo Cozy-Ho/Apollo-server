@@ -43,4 +43,5 @@ function conn_aws_sdk() {
 module.exports = {
   conn_mongo,
   conn_dynamo,
+  conn_aws_sdk,
 };

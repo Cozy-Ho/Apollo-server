@@ -12,10 +12,14 @@ if (db_select == "mongo") {
 } else if (db_select == "dynamo") {
   config.select = "dynamo";
   console.log("DB selected : " + db_select);
+} else {
+  config.select = "aws";
+  console.log("DB selected : " + db_select);
 }
 
 db.conn_mongo();
 db.conn_dynamo();
+db.conn_aws_sdk();
 
 const server = new GraphQLServer({
   typeDefs: "graphql/schema.graphql",

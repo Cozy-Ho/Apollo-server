@@ -42,7 +42,7 @@ function page(movies, pagination) {
   }
   return movies;
 }
-// title, score, watched, orderby, curpage, perpage, err
+// title, score, watched, desc, orderby, curpage, perpage, err
 async function searchMovie(args) {
   let params = args;
 
@@ -78,6 +78,7 @@ async function searchMovie(args) {
       movies = page(movies, params.pagination);
     } else {
       movies = await Movie.scan({}).exec();
+      console.log(movies);
     }
     return movies;
   } catch (err) {
