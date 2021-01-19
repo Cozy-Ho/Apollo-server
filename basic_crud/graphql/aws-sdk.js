@@ -6,9 +6,6 @@ var docClient = new AWS.DynamoDB.DocumentClient({ apiVersion: "2021-01-18" });
 import { v4 as uuidv4 } from "uuid";
 
 const tablename = "test02-movie3";
-let params = {
-  TableName: tablename,
-};
 
 function search(params) {
   return new Promise(function (resolve, reject) {
@@ -24,7 +21,12 @@ function search(params) {
   });
 }
 
+// Search 하는데 ID값을 알아야 search가 가능하다.. 이거 좀 이상한데...
+// Sortkey를 삭제해야하나? 그럼 ID값으로 조회가 가능한가?
 async function searchMovie(args) {
+  let params = {
+    TableName: tablename,
+  };
   return new Promise(function (resolve, reject) {
     params.ExpressionAttributeValues = {
       ":z": 1,
@@ -93,21 +95,33 @@ async function searchMovie(args) {
 }
 
 async function getMovie(id) {
+  let params = {
+    TableName: tablename,
+  };
   return new Promise(function (resolve, reject) {
-    params.Key = { id: id };
-    docClient.get(params, function (err, data) {
+    console.log(params);
+    params.ExpressionAttributeValues = {
+      ":z": 1,
+      ":i": id,
+    };
+    params.KeyConditionExpression = "dumy = :z and id = :i";
+    // params.FilterExpression = { id: id };
+    docClient.query(params, function (err, data) {
       if (err) {
         console.log("Error", err);
         return reject(err);
       } else {
-        console.log("Success", data.Item);
-        return resolve(data.Item);
+        console.log("Success", data.Items);
+        return resolve(data.Items[0]);
       }
     });
   });
 }
 
 async function createMovie(args) {
+  let params = {
+    TableName: tablename,
+  };
   return new Promise(function (resolve, reject) {
     params.Item = {
       dumy: 1,
@@ -118,7 +132,7 @@ async function createMovie(args) {
       watched: args.watched || false,
       info: args.info,
     };
-
+    console.log(params.Item);
     docClient.put(params, function (err, data) {
       if (err) {
         console.log("Error", err);
@@ -132,15 +146,22 @@ async function createMovie(args) {
 }
 
 async function updateMovie(args) {
+  let params = {
+    TableName: tablename,
+  };
   return new Promise(function (resolve, reject) {
     getMovie(args.id).then((origin) => {
       console.log(args);
       console.log(origin);
       params.Key = { id: args.id };
       params.UpdateExpression =
-        "SET title = :t, score = :s,watched = :w, #desc=:d, info=:i ";
+        "SET #title = :t, #score = :s, #watched = :w, #desc=:d, #info=:i ";
       params.ExpressionAttributeNames = {
+        "#title": "title",
         "#desc": "desc",
+        "#score": "score",
+        "#wathed": "watched",
+        "#info": "info",
       };
       params.ExpressionAttributeValues = {
         ":t": args.title || origin.title,
@@ -164,6 +185,9 @@ async function updateMovie(args) {
 }
 
 async function removeMovie(id) {
+  let params = {
+    TableName: tablename,
+  };
   return new Promise(function (resolve, reject) {
     params.Key = { id: id };
 
