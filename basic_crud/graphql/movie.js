@@ -25,12 +25,20 @@ function page(movies, pagination) {
   max = movies.length;
   console.log(movie_arr);
 
+  let tot_page;
+  if (max % perpage != 0) {
+    tot_page = parseInt(max / perpage) + 1;
+  } else {
+    tot_page = max / perpage;
+  }
+  console.log(movie_arr);
+
   let offset = (curpage - 1) * perpage;
   // console.log(movie_arry);
-  if (curpage <= max / perpage) {
+  if (curpage <= tot_page) {
     movies = movie_arr.slice(offset, offset + perpage);
   } else {
-    movies = null;
+    movies = [];
   }
   return movies;
 }
@@ -40,43 +48,58 @@ async function insertTestDB() {
     await Movie.insertMany([
       {
         id: uuidv4(),
-        title: "test1",
+        title: "abc",
         score: 1,
+        desc: "",
+        watched: true,
+        info: {
+          lang: "eng",
+          subtitle: "kor",
+        },
       },
       {
         id: uuidv4(),
-        title: "test2",
+        title: "abc",
         score: 2,
+        desc: "sample",
+        watched: false,
+        info: {
+          lang: "kor",
+          dubbing: "eng",
+        },
       },
       {
         id: uuidv4(),
-        title: "test3",
+        title: "abc",
         score: 3,
+        desc: "test",
+        watched: true,
+        info: {
+          lang: "kor",
+          subtitle: "eng",
+        },
       },
       {
         id: uuidv4(),
-        title: "test4",
+        title: "test6",
         score: 54,
+        desc: "sample",
+        watched: true,
+        info: {
+          lang: "ger",
+          dubbing: "eng",
+        },
       },
       {
         id: uuidv4(),
         title: "jan",
         score: 40,
-      },
-      {
-        id: uuidv4(),
-        title: "fev",
-        score: 71,
-      },
-      {
-        id: uuidv4(),
-        title: "dev",
-        score: 90,
-      },
-      {
-        id: uuidv4(),
-        title: "feba",
-        score: 39,
+        desc: "jap",
+        watched: false,
+        info: {
+          lang: "eng",
+          dubbing: "kor",
+        },
       },
     ]);
 
@@ -104,7 +127,22 @@ async function searchMovie(args) {
 
     if (args.search) {
       // 1. search
-      movies = await Movie.find(args.search);
+      // AND 조건
+      if (args.search.andor == "and" || args.search.andor == null) {
+        console.log(args.search);
+        movies = await Movie.find(args.search);
+
+        console.log(movies);
+        // OR 조건
+      } else {
+        let query = [];
+        for (var i in args.search) {
+          if (i != "andor") {
+            query.push({ [i]: args.search[i] });
+          }
+        }
+        movies = await Movie.find({ $or: query });
+      }
 
       // 2. search + sort + page
       if (args.orderby != null && args.pagination != null) {

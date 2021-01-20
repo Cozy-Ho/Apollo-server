@@ -67,6 +67,7 @@ input SortMethod {
   id: Sort
   title: Sort
   desc: Sort
+  score: Sort
 }
 
 input SearchMethod {
@@ -74,6 +75,8 @@ input SearchMethod {
   score: Int
   desc: String
   watched: Boolean
+  info: InputInfo
+  andor: String
 }
 
 input PaginationMethod {

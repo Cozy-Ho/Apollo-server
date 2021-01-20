@@ -3,10 +3,15 @@ import dynamoose from "dynamoose";
 
 const movieSchema = new dynamoose.Schema(
   {
+    dumy: {
+      type: Number,
+      required: true,
+      hashKey: true,
+    },
     id: {
       type: String,
       required: true,
-      unique: true,
+      rangeKey: true,
     },
     title: {
       type: String,
@@ -40,4 +45,4 @@ const movieSchema = new dynamoose.Schema(
   }
 );
 
-module.exports = dynamoose.model("test02-movie2", movieSchema);
+module.exports = dynamoose.model("test02-movie3", movieSchema);

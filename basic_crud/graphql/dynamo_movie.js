@@ -31,51 +31,137 @@ function page(movies, pagination) {
     movie_arr = movies;
     max = movies.length;
   }
+  let tot_page;
+  if (max % perpage != 0) {
+    tot_page = parseInt(max / perpage) + 1;
+  } else {
+    tot_page = max / perpage;
+  }
   console.log(movie_arr);
 
   let offset = (curpage - 1) * perpage;
   // console.log(movie_arry);
-  if (curpage <= max / perpage || 1 > max / perpage) {
+  if (curpage <= tot_page) {
     movies = movie_arr.slice(offset, offset + perpage);
   } else {
-    movies = null;
+    movies = [];
   }
   return movies;
 }
 // title, score, watched, desc, orderby, curpage, perpage, err
 async function searchMovie(args) {
-  let params = args;
-
   try {
     let movies;
-    if (params.search) {
+    if (args.search) {
       // 1. search
-      movies = await Movie.scan(params.search).exec();
+      // movies = await Movie.scan(args.search).exec();
+      let key = Object.getOwnPropertyNames(args.search);
+      console.log(key);
+
+      if (args.search.andor == "and" || args.search.andor == null) {
+        movies = await Movie.query("dumy").eq(1);
+        if (key.includes("title")) {
+          movies = movies.where("title").eq(args.search.title);
+        }
+        if (key.includes("score")) {
+          movies = movies.and().where("score").eq(args.search.score);
+        }
+        if (key.includes("desc")) {
+          movies = movies.and().where("desc").eq(args.search.desc);
+        }
+        if (key.includes("watched")) {
+          movies = movies.and().where("watched").eq(args.search.watched);
+        }
+        if (key.includes("info")) {
+          let info_key = Object.getOwnPropertyNames(args.search["info"]);
+          console.log(info_key);
+          if (info_key.includes("lang")) {
+            movies = movies.and().where("info.lang").eq(args.search.info.lang);
+          }
+          if (info_key.includes("subtitle")) {
+            movies = movies
+              .and()
+              .where("info.subtitle")
+              .eq(args.search.info.subtitle);
+          }
+          if (info_key.includes("dubbing")) {
+            movies = movies
+              .and()
+              .where("info.dubbing")
+              .eq(args.search.info.dubbing);
+          }
+        }
+      } else if (args.search.andor == "or") {
+        movies = await Movie.query("dumy")
+          .eq(1)
+          .and()
+          .parenthesis((condition) => {
+            if (key.includes("title")) {
+              condition = condition.or().where("title").eq(args.search.title);
+            }
+            if (key.includes("score")) {
+              condition = condition.or().where("score").eq(args.search.score);
+            }
+            if (key.includes("desc")) {
+              condition = condition.or().where("desc").eq(args.search.desc);
+            }
+            if (key.includes("watched")) {
+              condition = condition
+                .or()
+                .where("watched")
+                .eq(args.search.watched);
+            }
+            if (key.includes("info")) {
+              let info_key = Object.getOwnPropertyNames(args.search["info"]);
+              console.log(info_key);
+              if (info_key.includes("lang")) {
+                condition = condition
+                  .or()
+                  .where("info.lang")
+                  .eq(args.search.info.lang);
+              }
+              if (info_key.includes("subtitle")) {
+                condition = condition
+                  .or()
+                  .where("info.subtitle")
+                  .eq(args.search.info.subtitle);
+              }
+              if (info_key.includes("dubbing")) {
+                condition = condition
+                  .or()
+                  .where("info.dubbing")
+                  .eq(args.search.info.dubbing);
+              }
+            }
+            return condition;
+          });
+      }
+      movies = await movies.exec();
 
       // 2. search + sort + page
-      if (params.orderby != null && params.pagination != null) {
-        movies = await order(movies, params.orderby);
+      if (args.orderby != null && args.pagination != null) {
+        movies = await order(movies, args.orderby);
 
-        movies = await page(movies, params.pagination);
-      } else if (params.orderby) {
+        movies = await page(movies, args.pagination);
+      } else if (args.orderby) {
         // 3. search + sort
-        movies = await order(movies, params.orderby);
-      } else if (params.pagination) {
+        movies = await order(movies, args.orderby);
+      } else if (args.pagination) {
         // 4. search + page
-        movies = await page(movies, params.pagination);
+        movies = await page(movies, args.pagination);
       }
-    } else if (params.orderby) {
+    } else if (args.orderby) {
       // 5. sort
       movies = await Movie.scan({}).exec();
-      movies = order(movies, params.orderby);
+      movies = order(movies, args.orderby);
       // 6. sort + page
-      if (params.pagination) {
-        movies = page(movies, params.pagination);
+      if (args.pagination) {
+        movies = page(movies, args.pagination);
       }
-    } else if (params.pagination) {
+    } else if (args.pagination) {
       // 7. page
       movies = await Movie.scan({}).exec();
-      movies = page(movies, params.pagination);
+      movies = page(movies, args.pagination);
     } else {
       movies = await Movie.scan({}).exec();
       console.log(movies);
@@ -87,10 +173,9 @@ async function searchMovie(args) {
 }
 
 async function getMovie(id) {
-  console.log(id);
   let movies;
   try {
-    movies = await Movie.get({ id: id });
+    movies = await Movie.get({ dumy: 1, id: id });
     console.log(movies);
     return movies;
   } catch (err) {
@@ -104,6 +189,7 @@ async function createMovie(args) {
 
   try {
     const result = await Movie.create({
+      dumy: 1,
       id: uuidv4(),
       title: args.title,
       desc: args.desc || "",

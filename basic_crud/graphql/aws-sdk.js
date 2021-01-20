@@ -20,9 +20,44 @@ function search(params) {
     });
   });
 }
+function order(movies, orderby) {
+  // order
+  let movie_arr = movies;
+  let key = Object.getOwnPropertyNames(orderby);
+  let order = orderby[key[0]];
+  key = key[0];
+  if (order == "asc") {
+    movies = movie_arr.sort((a, b) => (a[key] > b[key] ? 1 : -1));
+  } else {
+    movies = movie_arr.sort((a, b) => (a[key] > b[key] ? -1 : 1));
+  }
+  return movies;
+}
 
-// Search 하는데 ID값을 알아야 search가 가능하다.. 이거 좀 이상한데...
-// Sortkey를 삭제해야하나? 그럼 ID값으로 조회가 가능한가?
+function page(movies, pagination) {
+  // console.log(movies);
+  const curpage = pagination.curpage;
+  const perpage = pagination.perpage;
+  let movie_arr = movies;
+  let max = movies.length;
+  let tot_page;
+  if (max % perpage != 0) {
+    tot_page = parseInt(max / perpage) + 1;
+  } else {
+    tot_page = max / perpage;
+  }
+  console.log(movie_arr);
+
+  let offset = (curpage - 1) * perpage;
+  // console.log(movie_arry);
+  if (curpage <= tot_page) {
+    movies = movie_arr.slice(offset, offset + perpage);
+  } else {
+    movies = [];
+  }
+  return movies;
+}
+
 async function searchMovie(args) {
   let params = {
     TableName: tablename,
@@ -35,52 +70,107 @@ async function searchMovie(args) {
     if (args.search) {
       // 1. search
       let andor;
-      if (args.andor == "and") {
+      if (args.search.andor == "and") {
         andor = "and";
-      } else {
+      } else if (args.search.andor == "or") {
         andor = "or";
       }
-      console.log(args.search);
       let key = Object.getOwnPropertyNames(args.search);
-      let value = args.search[key[0]];
-      key = key[0];
-      console.log(key, value);
+      console.log(key);
 
-      if (key == "title") {
-        params.ExpressionAttributeValues[":t"] = value;
+      // and,or 검색 조건부
+      if (key.includes("title")) {
+        params.ExpressionAttributeValues[":t"] = args.search["title"];
+        params.FilterExpression = "title=:t ";
+      }
+      if (key.includes("score")) {
+        params.ExpressionAttributeValues[":s"] = args.search["score"];
         // params.KeyConditionExpression += andor + " title= :t ";
-        params.KeyConditionExpression += "and title=:t";
-        console.log(params);
+        params.FilterExpression += andor + " score=:s ";
       }
-
-      if (args.orderby != null && args.pagination != null) {
-        // 2. search + sort + page
-        //
-      } else if (args.orderby) {
-        // 3. search + sort
-        //
-      } else if (args.pagination) {
-        // 4. search + page
-        //
+      if (key.includes("desc")) {
+        params.ExpressionAttributeValues[":d"] = args.search["desc"];
+        params.ExpressionAttributeNames = {
+          "#desc": "desc",
+        };
+        params.FilterExpression += andor + " #desc=:d ";
       }
-
+      if (key.includes("watched")) {
+        params.ExpressionAttributeValues[":w"] = args.search["watched"];
+        params.FilterExpression += andor + " watched=:w ";
+      }
+      if (key.includes("info")) {
+        let info_key = Object.getOwnPropertyNames(args.search["info"]);
+        console.log(info_key);
+        if (info_key.includes("lang")) {
+          params.ExpressionAttributeValues[":l"] = args.search["info"].lang;
+          params.FilterExpression += andor + " info.lang=:l ";
+        }
+        if (info_key.includes("subtitle")) {
+          params.ExpressionAttributeValues[":sub"] =
+            args.search["info"].subtitle;
+          params.FilterExpression += andor + " info.subtitle=:sub ";
+        }
+        if (info_key.includes("dubbing")) {
+          params.ExpressionAttributeValues[":dub"] =
+            args.search["info"].dubbing;
+          params.FilterExpression += andor + " info.dubbing=:dub ";
+        }
+      }
+      console.log(params);
       search(params)
         .then((res) => {
-          return resolve(res);
+          console.log(res);
+          let result;
+          if (args.orderby != null && args.pagination != null) {
+            // 2. search + sort + page
+            result = order(res, args.orderby);
+            result = page(result, args.pagination);
+          } else if (args.orderby) {
+            // 3. search + sort
+            result = order(res, args.orderby);
+          } else if (args.pagination) {
+            // 4. search + page
+            result = page(res, args.pagination);
+          } else {
+            // 8. search ALL
+            return resolve(res);
+          }
+          console.log(result);
+
+          return resolve(result);
         })
         .catch((err) => {
           return reject(err);
         });
     } else if (args.orderby) {
       // 5. sort
-      //
-      // 6. sort + page
-      if (args.pagination) {
-        //
-      }
+      search(params)
+        .then((res) => {
+          let result;
+          result = order(res, args.orderby);
+          // 6. sort + page
+          if (args.pagination) {
+            result = page(result, args.pagination);
+          }
+          return resolve(result);
+        })
+        .catch((err) => {
+          console.log(err);
+          return reject(err);
+        });
     } else if (args.pagination) {
       // 7. page
-      //
+      search(params)
+        .then((res) => {
+          let result;
+          result = page(res, args.pagination);
+          return resolve(result);
+        })
+        .catch((err) => {
+          console.log(err);
+          return reject(err);
+        });
     } else {
       search(params)
         .then((res) => {
@@ -128,7 +218,7 @@ async function createMovie(args) {
       id: uuidv4(),
       title: args.title,
       desc: args.desc || "",
-      score: args.score || "0",
+      score: args.score || 0,
       watched: args.watched || false,
       info: args.info,
     };
@@ -151,32 +241,33 @@ async function updateMovie(args) {
   };
   return new Promise(function (resolve, reject) {
     getMovie(args.id).then((origin) => {
-      console.log(args);
-      console.log(origin);
-      params.Key = { id: args.id };
+      if (!args.title) {
+        args.title = origin.title;
+      }
+      params.Key = { id: args.id, dumy: 1 };
       params.UpdateExpression =
         "SET #title = :t, #score = :s, #watched = :w, #desc=:d, #info=:i ";
       params.ExpressionAttributeNames = {
         "#title": "title",
         "#desc": "desc",
         "#score": "score",
-        "#wathed": "watched",
+        "#watched": "watched",
         "#info": "info",
       };
       params.ExpressionAttributeValues = {
-        ":t": args.title || origin.title,
+        ":t": args.title,
         ":d": args.desc || origin.desc || "",
         ":s": args.score || origin.score || "0",
         ":w": args.watched || origin.watched || false,
         ":i": args.info || origin.info,
       };
-
+      console.log(params);
       docClient.update(params, function (err, data) {
         if (err) {
           console.log("Error", err);
           return reject(err);
         } else {
-          console.log("Success", data);
+          console.log("Success", data.Item);
           return resolve(args);
         }
       });
