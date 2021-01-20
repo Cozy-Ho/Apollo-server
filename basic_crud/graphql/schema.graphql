@@ -1,12 +1,3 @@
-# Todo
-# Schema 정리 - 6개 Atr.
-# ID(String), bool, union, int, string, string
-
-# Query name 정리
-# getMovie(search(id) uniq값 하나 return)
-# searchMovie(search(title), sort, page)
-# createMovie, updateMovie, removeMovie
-
 type Movie {
   id: String!
   title: String!

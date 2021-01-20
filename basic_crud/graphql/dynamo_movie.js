@@ -1,4 +1,5 @@
 import Movie from "../models/dynamo_movies";
+import dynamoose from "dynamoose";
 import { v4 as uuidv4 } from "uuid";
 
 function order(movies, orderby) {
@@ -208,7 +209,7 @@ async function createMovie(args) {
 
 async function removeMovie(id) {
   try {
-    await Movie.delete({ id: id });
+    await Movie.delete({ dumy: 1, id: id });
     return "삭제 완료";
   } catch (err) {
     console.log(err);
@@ -217,17 +218,18 @@ async function removeMovie(id) {
 }
 
 async function updateMovie(args) {
-  const origin = await Movie.get({ id: args.id });
+  const origin = await Movie.get({ dumy: 1, id: args.id });
   console.log(origin);
   const update_query = {
     title: args.title || origin.title,
     score: args.score || origin.score,
     desc: args.desc || origin.desc,
     watched: args.watched || origin.watched,
-    info: args.info || origin.info,
+    info: args.info || origin.info || {},
   };
   try {
-    const result = await Movie.update({ id: args.id }, update_query);
+    const result = await Movie.update({ dumy: 1, id: args.id }, update_query);
+    console.log(result);
     return result;
   } catch (err) {
     console.log(err);

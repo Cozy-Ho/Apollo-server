@@ -3,6 +3,7 @@ AWS.config.update({ region: "us-east-2" });
 // var ddb = new AWS.DynamoDB({ apiVersion: "2021-01-18" });
 // Create DynamoDB document client
 var docClient = new AWS.DynamoDB.DocumentClient({ apiVersion: "2021-01-18" });
+import { NULL } from "dynamoose";
 import { v4 as uuidv4 } from "uuid";
 
 const tablename = "test02-movie3";
@@ -69,19 +70,14 @@ async function searchMovie(args) {
     params.KeyConditionExpression = "dumy= :z ";
     if (args.search) {
       // 1. search
-      let andor;
-      if (args.search.andor == "and") {
-        andor = "and";
-      } else if (args.search.andor == "or") {
-        andor = "or";
-      }
       let key = Object.getOwnPropertyNames(args.search);
       console.log(key);
 
       // and,or 검색 조건부
+      let filter = [];
       if (key.includes("title")) {
         params.ExpressionAttributeValues[":t"] = args.search["title"];
-        params.FilterExpression = "title=:t ";
+        filter.push("title=:t");
       }
       if (key.includes("score")) {
         params.ExpressionAttributeValues[":s"] = args.search["score"];
@@ -93,31 +89,38 @@ async function searchMovie(args) {
         params.ExpressionAttributeNames = {
           "#desc": "desc",
         };
-        params.FilterExpression += andor + " #desc=:d ";
+        filter.push("#desc=:d");
       }
       if (key.includes("watched")) {
         params.ExpressionAttributeValues[":w"] = args.search["watched"];
-        params.FilterExpression += andor + " watched=:w ";
+        filter.push("watched=:w");
       }
       if (key.includes("info")) {
         let info_key = Object.getOwnPropertyNames(args.search["info"]);
         console.log(info_key);
         if (info_key.includes("lang")) {
           params.ExpressionAttributeValues[":l"] = args.search["info"].lang;
-          params.FilterExpression += andor + " info.lang=:l ";
+          filter.push("info.lang=:l");
         }
         if (info_key.includes("subtitle")) {
           params.ExpressionAttributeValues[":sub"] =
             args.search["info"].subtitle;
-          params.FilterExpression += andor + " info.subtitle=:sub ";
+          filter.push("info.subtitle=:sub");
         }
         if (info_key.includes("dubbing")) {
           params.ExpressionAttributeValues[":dub"] =
             args.search["info"].dubbing;
-          params.FilterExpression += andor + " info.dubbing=:dub ";
+          filter.push("info.dubbing=:dub");
         }
       }
-      console.log(params);
+
+      // AND or OR search
+      if (args.search.andor == "and" || args.search.andor == null) {
+        params.FilterExpression = filter.join(" and ");
+      } else if (args.search.andor == "or") {
+        params.FilterExpression = filter.join(" or ");
+      }
+
       search(params)
         .then((res) => {
           console.log(res);
@@ -280,7 +283,7 @@ async function removeMovie(id) {
     TableName: tablename,
   };
   return new Promise(function (resolve, reject) {
-    params.Key = { id: id };
+    params.Key = { dumy: 1, id: id };
 
     docClient.delete(params, function (err, data) {
       if (err) {

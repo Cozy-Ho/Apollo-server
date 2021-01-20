@@ -3,6 +3,10 @@ import mongoose from "mongoose";
 const { Schema } = mongoose;
 
 const movieSchema = new Schema({
+  dumy: {
+    type: Number,
+    required: true,
+  },
   id: {
     type: String,
     required: true,
@@ -23,19 +27,17 @@ const movieSchema = new Schema({
     type: Boolean,
     required: false,
   },
-  info: {
-    lang: {
-      type: String,
-      required: false,
-    },
-    subtitle: {
-      type: String,
-      required: false,
-    },
-    dubbing: {
-      type: String,
-      required: false,
-    },
+  lang: {
+    type: String,
+    required: false,
+  },
+  subtitle: {
+    type: String,
+    required: false,
+  },
+  dubbing: {
+    type: String,
+    required: false,
   },
 });
 

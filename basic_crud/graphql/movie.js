@@ -47,6 +47,7 @@ async function insertTestDB() {
   try {
     await Movie.insertMany([
       {
+        dumy: 1,
         id: uuidv4(),
         title: "abc",
         score: 1,
@@ -58,6 +59,7 @@ async function insertTestDB() {
         },
       },
       {
+        dumy: 1,
         id: uuidv4(),
         title: "abc",
         score: 2,
@@ -69,6 +71,7 @@ async function insertTestDB() {
         },
       },
       {
+        dumy: 1,
         id: uuidv4(),
         title: "abc",
         score: 3,
@@ -80,6 +83,7 @@ async function insertTestDB() {
         },
       },
       {
+        dumy: 1,
         id: uuidv4(),
         title: "test6",
         score: 54,
@@ -91,6 +95,7 @@ async function insertTestDB() {
         },
       },
       {
+        dumy: 1,
         id: uuidv4(),
         title: "jan",
         score: 40,
@@ -129,10 +134,11 @@ async function searchMovie(args) {
       // 1. search
       // AND 조건
       if (args.search.andor == "and" || args.search.andor == null) {
-        console.log(args.search);
+        delete args.search["andor"];
+        // console.log(args.search);
         movies = await Movie.find(args.search);
+        // console.log(movies);
 
-        console.log(movies);
         // OR 조건
       } else {
         let query = [];
@@ -179,15 +185,16 @@ async function searchMovie(args) {
 
 async function updateMovie(args) {
   const origin = await Movie.findOne({ id: args.id });
-  console.log(origin);
+
   const update_query = {
-    title: args.title || origin.titile,
+    title: args.title || origin.title,
     score: args.score || origin.score,
     desc: args.desc || origin.desc,
     watched: args.watched || origin.watched,
-    info: args.info || origin.info,
+    info: args.info || origin.info || {},
   };
   try {
+    console.log(update_query);
     const movie = await Movie.findOneAndUpdate(
       {
         id: args.id,
@@ -220,12 +227,13 @@ async function createMovie(args) {
     const info = args.info;
     console.log(info);
     const movie = await Movie.create({
+      dumy: 1,
       id: uuidv4(),
       title: args.title,
       desc: args.desc || "",
       score: args.score || 0,
       watched: args.watched || false,
-      info: info,
+      info: info || {},
     });
     console.log(movie);
     return movie;
