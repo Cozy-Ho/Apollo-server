@@ -14,6 +14,36 @@ function order(movies, orderby) {
   }
   return movies;
 }
+async function index_sort(movies, orderby) {
+  // order by index.
+  let key = Object.getOwnPropertyNames(orderby);
+  let order = orderby[key[0]];
+  let index;
+  try {
+    movies = await movies.query("dumy").eq(1);
+    console.log(movies);
+    if (key[0] == "id") {
+      index = "id";
+      if (order == "asc") {
+        movies = movies.sort("acending").exec();
+      } else {
+        movies = movies.sort("descending").exec();
+      }
+      return movies;
+    } else {
+      index = key[0] + "-index";
+    }
+    if (order == "asc") {
+      movies = movies.using(index).sort("acending").exec();
+    } else {
+      movies = movies.using(index).sort("descending").exec();
+    }
+    return movies;
+  } catch (err) {
+    console.log(err);
+    return [];
+  }
+}
 
 function page(movies, pagination) {
   // console.log(movies);
@@ -152,10 +182,10 @@ async function searchMovie(args) {
       }
     } else if (args.orderby) {
       // 5. sort
-      movies = await Movie.scan({}).exec();
-      movies = order(movies, args.orderby);
-      // console.log(args.orderby);
-      // movies = await Movie.query("dumy").eq(1).using("title-index").exec();
+      // movies = await Movie.scan({}).exec();
+      // movies = order(movies, args.orderby);
+      console.log(args.orderby);
+      movies = await index_sort(movies, args.orderby);
       // console.log(movies);
       // 6. sort + page
       if (args.pagination) {
