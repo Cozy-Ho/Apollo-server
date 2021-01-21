@@ -1,4 +1,3 @@
-import { IoTSecureTunneling } from "aws-sdk";
 import dynamoose from "dynamoose";
 
 const movieSchema = new dynamoose.Schema(
@@ -45,4 +44,4 @@ const movieSchema = new dynamoose.Schema(
   }
 );
 
-module.exports = dynamoose.model("test02-movie4", movieSchema);
+module.exports = dynamoose.model("test02-movie3", movieSchema);

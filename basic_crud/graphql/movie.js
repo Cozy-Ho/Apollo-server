@@ -236,8 +236,6 @@ async function removeMovie(id) {
 
 async function createMovie(args) {
   try {
-    const info = args.info;
-    console.log(info);
     const movie = await Movie.create({
       dumy: 1,
       id: uuidv4(),
@@ -245,7 +243,7 @@ async function createMovie(args) {
       desc: args.desc || "",
       score: args.score || 0,
       watched: args.watched || false,
-      info: info || {},
+      info: args.info || {},
     });
     console.log(movie);
     return movie;

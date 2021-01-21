@@ -27,17 +27,21 @@ const movieSchema = new Schema({
     type: Boolean,
     required: false,
   },
-  lang: {
-    type: String,
+  info: {
+    type: Object,
     required: false,
-  },
-  subtitle: {
-    type: String,
-    required: false,
-  },
-  dubbing: {
-    type: String,
-    required: false,
+    lang: {
+      type: String,
+      required: false,
+    },
+    subtitle: {
+      type: String,
+      required: false,
+    },
+    dubbing: {
+      type: String,
+      required: false,
+    },
   },
 });
 

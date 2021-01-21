@@ -58,7 +58,7 @@ function page(movies, pagination) {
   return movies;
 }
 
-async function searchMovie(args) {
+function searchMovie(args) {
   let params = {
     TableName: tablename,
   };
@@ -81,7 +81,7 @@ async function searchMovie(args) {
       if (key.includes("score")) {
         params.ExpressionAttributeValues[":s"] = args.search["score"];
         // params.KeyConditionExpression += andor + " title= :t ";
-        params.FilterExpression += andor + " score=:s ";
+        filter.push("score=:s");
       }
       if (key.includes("desc")) {
         params.ExpressionAttributeValues[":d"] = args.search["desc"];
@@ -114,6 +114,7 @@ async function searchMovie(args) {
       }
 
       // AND or OR search
+      console.log(args.search);
       if (args.search.andor == "and" || args.search.andor == null) {
         params.FilterExpression = filter.join(" and ");
       } else if (args.search.andor == "or") {
@@ -186,7 +187,7 @@ async function searchMovie(args) {
   });
 }
 
-async function getMovie(id) {
+function getMovie(id) {
   let params = {
     TableName: tablename,
   };
@@ -210,7 +211,7 @@ async function getMovie(id) {
   });
 }
 
-async function createMovie(args) {
+function createMovie(args) {
   let params = {
     TableName: tablename,
   };
@@ -237,7 +238,7 @@ async function createMovie(args) {
   });
 }
 
-async function updateMovie(args) {
+function updateMovie(args) {
   let params = {
     TableName: tablename,
   };
@@ -277,7 +278,7 @@ async function updateMovie(args) {
   });
 }
 
-async function removeMovie(id) {
+function removeMovie(id) {
   let params = {
     TableName: tablename,
   };
@@ -303,9 +304,3 @@ module.exports = {
   removeMovie,
   updateMovie,
 };
-
-// searchMovie({ key: { title: "test" } });
-// getMovie("ba7ef17e-f295-4499-8d1b-f7c8dd02a58f");
-// createMovie({ title: "test" });
-// updateMovie();
-// removeMovie();
