@@ -106,6 +106,18 @@ async function insertTestDB() {
           dubbing: "kor",
         },
       },
+      {
+        dumy: 1,
+        id: uuidv4(),
+        title: "vatech",
+        score: 999,
+        desc: "vatech_test",
+        watched: false,
+        info: {
+          lang: "eng",
+          subtitle: "kor",
+        },
+      },
     ]);
 
     return true;

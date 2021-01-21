@@ -3,7 +3,6 @@ AWS.config.update({ region: "us-east-2" });
 // var ddb = new AWS.DynamoDB({ apiVersion: "2021-01-18" });
 // Create DynamoDB document client
 var docClient = new AWS.DynamoDB.DocumentClient({ apiVersion: "2021-01-18" });
-import { NULL } from "dynamoose";
 import { v4 as uuidv4 } from "uuid";
 
 const tablename = "test02-movie3";
@@ -260,7 +259,7 @@ async function updateMovie(args) {
       params.ExpressionAttributeValues = {
         ":t": args.title,
         ":d": args.desc || origin.desc || "",
-        ":s": args.score || origin.score || "0",
+        ":s": args.score || origin.score || 0,
         ":w": args.watched || origin.watched || false,
         ":i": args.info || origin.info,
       };

@@ -16,7 +16,8 @@ if (db_select == "mongo") {
   config.select = "aws";
   console.log("DB selected : " + db_select);
 }
-
+// 모두 연결.
+// 파라미터에 따라서 다른 DB로 연결하도록 수정해야함.
 db.conn_mongo();
 db.conn_dynamo();
 db.conn_aws_sdk();

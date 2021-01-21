@@ -1,5 +1,4 @@
 import Movie from "../models/dynamo_movies";
-import dynamoose from "dynamoose";
 import { v4 as uuidv4 } from "uuid";
 
 function order(movies, orderby) {
@@ -62,7 +61,7 @@ async function searchMovie(args) {
       if (args.search.andor == "and" || args.search.andor == null) {
         movies = await Movie.query("dumy").eq(1);
         if (key.includes("title")) {
-          movies = movies.where("title").eq(args.search.title);
+          movies = movies.and().where("title").eq(args.search.title);
         }
         if (key.includes("score")) {
           movies = movies.and().where("score").eq(args.search.score);
@@ -155,6 +154,9 @@ async function searchMovie(args) {
       // 5. sort
       movies = await Movie.scan({}).exec();
       movies = order(movies, args.orderby);
+      // console.log(args.orderby);
+      // movies = await Movie.query("dumy").eq(1).using("title-index").exec();
+      // console.log(movies);
       // 6. sort + page
       if (args.pagination) {
         movies = page(movies, args.pagination);
@@ -237,8 +239,92 @@ async function updateMovie(args) {
   }
 }
 
+async function insertTestDB() {
+  try {
+    await Movie.batchPut([
+      {
+        dumy: 1,
+        id: uuidv4(),
+        title: "abc",
+        score: 1,
+        desc: "samsung",
+        watched: true,
+        info: {
+          lang: "eng",
+          subtitle: "kor",
+        },
+      },
+      {
+        dumy: 1,
+        id: uuidv4(),
+        title: "abc",
+        score: 2,
+        desc: "sample",
+        watched: false,
+        info: {
+          lang: "kor",
+          dubbing: "eng",
+        },
+      },
+      {
+        dumy: 1,
+        id: uuidv4(),
+        title: "abc",
+        score: 3,
+        desc: "test",
+        watched: true,
+        info: {
+          lang: "kor",
+          subtitle: "eng",
+        },
+      },
+      {
+        dumy: 1,
+        id: uuidv4(),
+        title: "test6",
+        score: 54,
+        desc: "sample",
+        watched: true,
+        info: {
+          lang: "ger",
+          dubbing: "eng",
+        },
+      },
+      {
+        dumy: 1,
+        id: uuidv4(),
+        title: "jan",
+        score: 40,
+        desc: "jap",
+        watched: false,
+        info: {
+          lang: "eng",
+          dubbing: "kor",
+        },
+      },
+      {
+        dumy: 1,
+        id: uuidv4(),
+        title: "vatech",
+        score: 999,
+        desc: "vatech_test",
+        watched: false,
+        info: {
+          lang: "eng",
+          subtitle: "kor",
+        },
+      },
+    ]);
+    return true;
+  } catch (err) {
+    console.log(err);
+    return false;
+  }
+}
+
 module.exports = {
   getMovie,
+  insertTestDB,
   searchMovie,
   createMovie,
   removeMovie,
