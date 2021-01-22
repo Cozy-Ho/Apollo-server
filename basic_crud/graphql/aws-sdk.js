@@ -5,60 +5,23 @@ AWS.config.update({ region: "us-east-2" });
 var docClient = new AWS.DynamoDB.DocumentClient({ apiVersion: "2021-01-18" });
 import { v4 as uuidv4 } from "uuid";
 
-const tablename = "test02-movie3";
+const tablename = "test02-movie4";
 
 function search(params) {
   return new Promise(function (resolve, reject) {
     docClient.query(params, function (err, data) {
       if (err) {
-        console.log(err);
+        // console.log(err);
         return reject(err);
       } else {
-        console.log(data.Items);
+        // console.log(data.Items);
         return resolve(data.Items);
       }
     });
   });
 }
-function order(movies, orderby) {
-  // order
-  let movie_arr = movies;
-  let key = Object.getOwnPropertyNames(orderby);
-  let order = orderby[key[0]];
-  key = key[0];
-  if (order == "asc") {
-    movies = movie_arr.sort((a, b) => (a[key] > b[key] ? 1 : -1));
-  } else {
-    movies = movie_arr.sort((a, b) => (a[key] > b[key] ? -1 : 1));
-  }
-  return movies;
-}
 
-function page(movies, pagination) {
-  // console.log(movies);
-  const curpage = pagination.curpage;
-  const perpage = pagination.perpage;
-  let movie_arr = movies;
-  let max = movies.length;
-  let tot_page;
-  if (max % perpage != 0) {
-    tot_page = parseInt(max / perpage) + 1;
-  } else {
-    tot_page = max / perpage;
-  }
-  console.log(movie_arr);
-
-  let offset = (curpage - 1) * perpage;
-  // console.log(movie_arry);
-  if (curpage <= tot_page) {
-    movies = movie_arr.slice(offset, offset + perpage);
-  } else {
-    movies = [];
-  }
-  return movies;
-}
-
-function searchMovie(args) {
+async function searchMovie(args) {
   let params = {
     TableName: tablename,
   };
@@ -67,127 +30,94 @@ function searchMovie(args) {
       ":z": 1,
     };
     params.KeyConditionExpression = "dumy= :z ";
-    if (args.search) {
-      // 1. search
-      let key = Object.getOwnPropertyNames(args.search);
-      console.log(key);
-
-      // and,or 검색 조건부
-      let filter = [];
-      if (key.includes("title")) {
-        params.ExpressionAttributeValues[":t"] = args.search["title"];
-        filter.push("title=:t");
-      }
-      if (key.includes("score")) {
-        params.ExpressionAttributeValues[":s"] = args.search["score"];
-        // params.KeyConditionExpression += andor + " title= :t ";
-        filter.push("score=:s");
-      }
-      if (key.includes("desc")) {
-        params.ExpressionAttributeValues[":d"] = args.search["desc"];
-        params.ExpressionAttributeNames = {
-          "#desc": "desc",
-        };
-        filter.push("#desc=:d");
-      }
-      if (key.includes("watched")) {
-        params.ExpressionAttributeValues[":w"] = args.search["watched"];
-        filter.push("watched=:w");
-      }
-      if (key.includes("info")) {
-        let info_key = Object.getOwnPropertyNames(args.search["info"]);
-        console.log(info_key);
-        if (info_key.includes("lang")) {
-          params.ExpressionAttributeValues[":l"] = args.search["info"].lang;
-          filter.push("info.lang=:l");
+    if (args) {
+      if (args.search) {
+        // 1. search
+        let key = Object.getOwnPropertyNames(args.search);
+        // and,or 검색 조건부
+        let filter = [];
+        if (key.includes("title")) {
+          params.ExpressionAttributeValues[":t"] = args.search["title"];
+          filter.push("title=:t");
         }
-        if (info_key.includes("subtitle")) {
-          params.ExpressionAttributeValues[":sub"] =
-            args.search["info"].subtitle;
-          filter.push("info.subtitle=:sub");
+        if (key.includes("score")) {
+          params.ExpressionAttributeValues[":s"] = args.search["score"];
+          params.FilterExpression += andor + " score=:s ";
         }
-        if (info_key.includes("dubbing")) {
-          params.ExpressionAttributeValues[":dub"] =
-            args.search["info"].dubbing;
-          filter.push("info.dubbing=:dub");
+        if (key.includes("desc")) {
+          params.ExpressionAttributeValues[":d"] = args.search["desc"];
+          // DB reserved name 사용
+          params.ExpressionAttributeNames = {
+            "#desc": "desc",
+          };
+          filter.push("#desc=:d");
+        }
+        if (key.includes("watched")) {
+          params.ExpressionAttributeValues[":w"] = args.search["watched"];
+          filter.push("watched=:w");
+        }
+        if (key.includes("info")) {
+          let info_key = Object.getOwnPropertyNames(args.search["info"]);
+          console.log(info_key);
+          if (info_key.includes("lang")) {
+            params.ExpressionAttributeValues[":l"] = args.search["info"].lang;
+            filter.push("info.lang=:l");
+          }
+          if (info_key.includes("subtitle")) {
+            params.ExpressionAttributeValues[":sub"] =
+              args.search["info"].subtitle;
+            filter.push("info.subtitle=:sub");
+          }
+          if (info_key.includes("dubbing")) {
+            params.ExpressionAttributeValues[":dub"] =
+              args.search["info"].dubbing;
+            filter.push("info.dubbing=:dub");
+          }
+        }
+
+        // AND or OR search
+        if (args.search.andor == "and" || args.search.andor == null) {
+          params.FilterExpression = filter.join(" and ");
+        } else if (args.search.andor == "or") {
+          params.FilterExpression = filter.join(" or ");
         }
       }
+      if (args.orderby) {
+        // order
+        let key = Object.getOwnPropertyNames(args.orderby);
+        let order = args.orderby[key[0]];
+        key = key[0];
 
-      // AND or OR search
-      console.log(args.search);
-      if (args.search.andor == "and" || args.search.andor == null) {
-        params.FilterExpression = filter.join(" and ");
-      } else if (args.search.andor == "or") {
-        params.FilterExpression = filter.join(" or ");
+        // Sort- key 설정
+        params.IndexName = key + "-index";
+        if (order == "asc") {
+          params.ScanIndexForward = true;
+        } else {
+          params.ScanIndexForward = false;
+        }
       }
-
+      if (args.pagination) {
+        const perpage = args.pagination.perpage;
+        const curpage = args.pagination.curpage;
+        // params.ExclusiveStartKey = { dumy: 1 };
+        params.Limit = perpage + 1;
+      }
+      //
       search(params)
         .then((res) => {
           console.log(res);
-          let result;
-          if (args.orderby != null && args.pagination != null) {
-            // 2. search + sort + page
-            result = order(res, args.orderby);
-            result = page(result, args.pagination);
-          } else if (args.orderby) {
-            // 3. search + sort
-            result = order(res, args.orderby);
-          } else if (args.pagination) {
-            // 4. search + page
-            result = page(res, args.pagination);
-          } else {
-            // 8. search ALL
-            return resolve(res);
-          }
-          console.log(result);
-
-          return resolve(result);
-        })
-        .catch((err) => {
-          return reject(err);
-        });
-    } else if (args.orderby) {
-      // 5. sort
-      search(params)
-        .then((res) => {
-          let result;
-          result = order(res, args.orderby);
-          // 6. sort + page
-          if (args.pagination) {
-            result = page(result, args.pagination);
-          }
-          return resolve(result);
-        })
-        .catch((err) => {
-          console.log(err);
-          return reject(err);
-        });
-    } else if (args.pagination) {
-      // 7. page
-      search(params)
-        .then((res) => {
-          let result;
-          result = page(res, args.pagination);
-          return resolve(result);
+          return resolve(res);
         })
         .catch((err) => {
           console.log(err);
           return reject(err);
         });
     } else {
-      search(params)
-        .then((res) => {
-          return resolve(res);
-        })
-        .catch((err) => {
-          return reject(err);
-        });
     }
-    return null;
   });
 }
 
-function getMovie(id) {
+async function getMovie(id) {
   let params = {
     TableName: tablename,
   };
@@ -211,7 +141,7 @@ function getMovie(id) {
   });
 }
 
-function createMovie(args) {
+async function createMovie(args) {
   let params = {
     TableName: tablename,
   };
@@ -238,7 +168,7 @@ function createMovie(args) {
   });
 }
 
-function updateMovie(args) {
+async function updateMovie(args) {
   let params = {
     TableName: tablename,
   };
@@ -278,7 +208,7 @@ function updateMovie(args) {
   });
 }
 
-function removeMovie(id) {
+async function removeMovie(id) {
   let params = {
     TableName: tablename,
   };

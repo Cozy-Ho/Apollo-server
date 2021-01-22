@@ -1,18 +1,35 @@
 import Movie from "../models/dynamo_movies";
 import { v4 as uuidv4 } from "uuid";
 
-function order(movies, orderby) {
-  // order
-  let movie_arr = movies.toJSON();
+async function index_sort(movies, orderby) {
+  // order by index.
   let key = Object.getOwnPropertyNames(orderby);
   let order = orderby[key[0]];
-  key = key[0];
-  if (order == "asc") {
-    movies = movie_arr.sort((a, b) => (a[key] > b[key] ? 1 : -1));
-  } else {
-    movies = movie_arr.sort((a, b) => (a[key] > b[key] ? -1 : 1));
+  let index;
+  try {
+    movies = await movies.query("dumy").eq(1);
+    console.log(movies);
+    if (key[0] == "id") {
+      index = "id";
+      if (order == "asc") {
+        movies = movies.sort("acending").exec();
+      } else {
+        movies = movies.sort("descending").exec();
+      }
+      return movies;
+    } else {
+      index = key[0] + "-index";
+    }
+    if (order == "asc") {
+      movies = movies.using(index).sort("acending").exec();
+    } else {
+      movies = movies.using(index).sort("descending").exec();
+    }
+    return movies;
+  } catch (err) {
+    console.log(err);
+    return [];
   }
-  return movies;
 }
 
 function page(movies, pagination) {
@@ -140,12 +157,13 @@ async function searchMovie(args) {
 
       // 2. search + sort + page
       if (args.orderby != null && args.pagination != null) {
-        movies = await order(movies, args.orderby);
+        // movies = await order(movies, args.orderby);
+        movies = await index_sort(movies, args.orderby);
 
         movies = await page(movies, args.pagination);
       } else if (args.orderby) {
         // 3. search + sort
-        movies = await order(movies, args.orderby);
+        movies = await index_sort(movies, args.orderby);
       } else if (args.pagination) {
         // 4. search + page
         movies = await page(movies, args.pagination);
@@ -153,7 +171,7 @@ async function searchMovie(args) {
     } else if (args.orderby) {
       // 5. sort
       movies = await Movie.scan({}).exec();
-      movies = order(movies, args.orderby);
+      movies = await index_sort(movies, args.orderby);
       // console.log(args.orderby);
       // movies = await Movie.query("dumy").eq(1).using("title-index").exec();
       // console.log(movies);
