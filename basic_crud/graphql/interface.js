@@ -43,7 +43,7 @@ async function setDatabase(flag) {
       return "Set Database as DynamoDB";
     } else if (flag == 2) {
       config.select = "aws";
-      return "Seted AWS-SDK";
+      return "Setted AWS-SDK";
     }
   } catch (err) {
     console.log(err);

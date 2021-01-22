@@ -1,10 +1,10 @@
 import { GraphQLServer } from "graphql-yoga";
+// import { ApolloServer } from "apollo-server";
+// import typeDefs from "./graphql/schema.graphql";
 import resolvers from "./graphql/resolvers";
 import config from "./config/config";
 import db from "./models";
-
 let db_select = process.argv.slice(2)[0];
-// console.log(db_select);
 
 if (db_select == "mongo") {
   config.select = "mongo";
@@ -28,3 +28,12 @@ const server = new GraphQLServer({
 });
 
 server.start(() => console.log("🚀  GraphQL Server is Running..."));
+
+// const server = new ApolloServer({
+//   typeDefs,
+//   resolvers,
+// });
+
+// server.listen().then(({ url }) => {
+//   console.log(`🚀  Server ready at ${url}`);
+// });

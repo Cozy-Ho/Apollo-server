@@ -1,13 +1,4 @@
-import {
-  insertTestDB,
-  deleteAll,
-  setDatabase,
-  searchMovie,
-  getMovie,
-  createMovie,
-  updateMovie,
-  removeMovie,
-} from "./interface";
+import * as EnterPoint from "./interface";
 
 const resolvers = {
   Info: {
@@ -23,21 +14,21 @@ const resolvers = {
   },
   Query: {
     // title, score, watched, orderby, curpage, perpage, err
-    searchMovie: (_, { ...args }) => searchMovie(args),
-    getMovie: (_, { id }) => getMovie(id),
+    searchMovie: (_, { ...args }) => EnterPoint.searchMovie(args),
+    getMovie: (_, { id }) => EnterPoint.getMovie(id),
   },
   Mutation: {
     // title, score, desc, watched, info
-    createMovie: (_, { ...args }) => createMovie(args),
-    removeMovie: (_, { id }) => removeMovie(id),
+    createMovie: (_, { ...args }) => EnterPoint.createMovie(args),
+    removeMovie: (_, { id }) => EnterPoint.removeMovie(id),
     // id, title, score
-    updateMovie: (_, { ...args }) => updateMovie(args),
+    updateMovie: (_, { ...args }) => EnterPoint.updateMovie(args),
 
     // TestDB
-    insertTestDB: () => insertTestDB(),
-    deleteAll: () => deleteAll(),
+    insertTestDB: () => EnterPoint.insertTestDB(),
+    deleteAll: () => EnterPoint.deleteAll(),
     // Set database
-    setDatabase: (_, { flag }) => setDatabase(flag),
+    setDatabase: (_, { flag }) => EnterPoint.setDatabase(flag),
   },
 };
 export default resolvers;

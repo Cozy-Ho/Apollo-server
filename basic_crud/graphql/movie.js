@@ -243,7 +243,7 @@ async function createMovie(args) {
       desc: args.desc || "",
       score: args.score || 0,
       watched: args.watched || false,
-      info: args.info || {},
+      info: args.info,
     });
     console.log(movie);
     return movie;

@@ -4,6 +4,7 @@
   "main": "app.js",
   "license": "MIT",
   "dependencies": {
+    "apollo-server": "^2.19.2",
     "aws-sdk": "^2.828.0",
     "babel-cli": "^6.26.0",
     "dotenv": "^8.2.0",

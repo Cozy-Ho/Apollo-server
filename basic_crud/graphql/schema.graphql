@@ -38,6 +38,7 @@ type Mutation {
   setDatabase(flag: Int!): String!
 }
 
+union Info = Sub | Dub
 type Sub {
   subtitle: String
   lang: String
@@ -46,7 +47,6 @@ type Dub {
   dubbing: String
   lang: String
 }
-union Info = Sub | Dub
 
 input InputInfo {
   lang: String
@@ -54,6 +54,10 @@ input InputInfo {
   dubbing: String
 }
 
+enum Sort {
+  asc
+  desc
+}
 input SortMethod {
   id: Sort
   title: Sort
@@ -73,9 +77,4 @@ input SearchMethod {
 input PaginationMethod {
   curpage: Int
   perpage: Int
-}
-
-enum Sort {
-  asc
-  desc
 }
