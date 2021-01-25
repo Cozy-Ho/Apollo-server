@@ -1,82 +1,17 @@
 import Movie from "../models/dynamo_movies";
 import { v4 as uuidv4 } from "uuid";
 
-async function index_sort(movies, orderby) {
-  // order by index.
-  let key = Object.getOwnPropertyNames(orderby);
-  let order = orderby[key[0]];
-  let index;
-  try {
-    movies = await movies.query("dumy").eq(1);
-    console.log(movies);
-    if (key[0] == "id") {
-      index = "id";
-      if (order == "asc") {
-        movies = movies.sort("acending").exec();
-      } else {
-        movies = movies.sort("descending").exec();
-      }
-      return movies;
-    } else {
-      index = key[0] + "-index";
-    }
-    if (order == "asc") {
-      movies = movies.using(index).sort("acending").exec();
-    } else {
-      movies = movies.using(index).sort("descending").exec();
-    }
-    return movies;
-  } catch (err) {
-    console.log(err);
-    return [];
-  }
-}
-
-function page(movies, pagination) {
-  // console.log(movies);
-  let max;
-  let movie_arr;
-  const curpage = pagination.curpage;
-  const perpage = pagination.perpage;
-
-  if (movies.hasOwnProperty("toJSON")) {
-    movie_arr = movies.toJSON();
-    max = movies.count;
-  } else {
-    // json으로 변경되어 들어올 경우, movie_arr에 count속성이 없다..
-    // 이거때문에 하루 날린듯? 잘하자!
-    movie_arr = movies;
-    max = movies.length;
-  }
-  let tot_page;
-  if (max % perpage != 0) {
-    tot_page = parseInt(max / perpage) + 1;
-  } else {
-    tot_page = max / perpage;
-  }
-  console.log(movie_arr);
-
-  let offset = (curpage - 1) * perpage;
-  // console.log(movie_arry);
-  if (curpage <= tot_page) {
-    movies = movie_arr.slice(offset, offset + perpage);
-  } else {
-    movies = [];
-  }
-  return movies;
-}
 // title, score, watched, desc, orderby, curpage, perpage, err
 async function searchMovie(args) {
   try {
     let movies;
+    movies = await Movie.query("dumy").eq(1);
+    // SEARCH
     if (args.search) {
-      // 1. search
-      // movies = await Movie.scan(args.search).exec();
       let key = Object.getOwnPropertyNames(args.search);
       console.log(key);
 
       if (args.search.andor == "and" || args.search.andor == null) {
-        movies = await Movie.query("dumy").eq(1);
         if (key.includes("title")) {
           movies = movies.and().where("title").eq(args.search.title);
         }
@@ -109,84 +44,85 @@ async function searchMovie(args) {
           }
         }
       } else if (args.search.andor == "or") {
-        movies = await Movie.query("dumy")
-          .eq(1)
-          .and()
-          .parenthesis((condition) => {
-            if (key.includes("title")) {
-              condition = condition.or().where("title").eq(args.search.title);
-            }
-            if (key.includes("score")) {
-              condition = condition.or().where("score").eq(args.search.score);
-            }
-            if (key.includes("desc")) {
-              condition = condition.or().where("desc").eq(args.search.desc);
-            }
-            if (key.includes("watched")) {
+        movies = movies.and().parenthesis((condition) => {
+          if (key.includes("title")) {
+            condition = condition.or().where("title").eq(args.search.title);
+          }
+          if (key.includes("score")) {
+            condition = condition.or().where("score").eq(args.search.score);
+          }
+          if (key.includes("desc")) {
+            condition = condition.or().where("desc").eq(args.search.desc);
+          }
+          if (key.includes("watched")) {
+            condition = condition.or().where("watched").eq(args.search.watched);
+          }
+          if (key.includes("info")) {
+            let info_key = Object.getOwnPropertyNames(args.search["info"]);
+            console.log(info_key);
+            if (info_key.includes("lang")) {
               condition = condition
                 .or()
-                .where("watched")
-                .eq(args.search.watched);
+                .where("info.lang")
+                .eq(args.search.info.lang);
             }
-            if (key.includes("info")) {
-              let info_key = Object.getOwnPropertyNames(args.search["info"]);
-              console.log(info_key);
-              if (info_key.includes("lang")) {
-                condition = condition
-                  .or()
-                  .where("info.lang")
-                  .eq(args.search.info.lang);
-              }
-              if (info_key.includes("subtitle")) {
-                condition = condition
-                  .or()
-                  .where("info.subtitle")
-                  .eq(args.search.info.subtitle);
-              }
-              if (info_key.includes("dubbing")) {
-                condition = condition
-                  .or()
-                  .where("info.dubbing")
-                  .eq(args.search.info.dubbing);
-              }
+            if (info_key.includes("subtitle")) {
+              condition = condition
+                .or()
+                .where("info.subtitle")
+                .eq(args.search.info.subtitle);
             }
-            return condition;
-          });
+            if (info_key.includes("dubbing")) {
+              condition = condition
+                .or()
+                .where("info.dubbing")
+                .eq(args.search.info.dubbing);
+            }
+          }
+          return condition;
+        });
       }
-      movies = await movies.exec();
-
-      // 2. search + sort + page
-      if (args.orderby != null && args.pagination != null) {
-        // movies = await order(movies, args.orderby);
-        movies = await index_sort(movies, args.orderby);
-
-        movies = await page(movies, args.pagination);
-      } else if (args.orderby) {
-        // 3. search + sort
-        movies = await index_sort(movies, args.orderby);
-      } else if (args.pagination) {
-        // 4. search + page
-        movies = await page(movies, args.pagination);
-      }
-    } else if (args.orderby) {
-      // 5. sort
-      movies = await Movie.scan({}).exec();
-      movies = await index_sort(movies, args.orderby);
-      // console.log(args.orderby);
-      // movies = await Movie.query("dumy").eq(1).using("title-index").exec();
-      // console.log(movies);
-      // 6. sort + page
-      if (args.pagination) {
-        movies = page(movies, args.pagination);
-      }
-    } else if (args.pagination) {
-      // 7. page
-      movies = await Movie.scan({}).exec();
-      movies = page(movies, args.pagination);
-    } else {
-      movies = await Movie.scan({}).exec();
-      console.log(movies);
     }
+
+    // SORT
+    if (args.orderby) {
+      let key = Object.getOwnPropertyNames(args.orderby);
+      let order = args.orderby[key[0]];
+      let index;
+      if (key[0] == "id") {
+        index = "id";
+        if (order == "asc") {
+          movies = movies.sort("acending");
+        } else {
+          movies = movies.sort("descending");
+        }
+      } else {
+        index = key[0] + "-index";
+        if (order == "asc") {
+          movies = movies.using(index).sort("acending");
+        } else {
+          movies = movies.using(index).sort("descending");
+        }
+      }
+    }
+
+    // PAGINATION
+    if (args.pagination) {
+      const perpage = args.pagination.perpage;
+      const curpage = args.pagination.curpage;
+      let limit;
+      if (curpage == 1) {
+        limit = perpage;
+        movies = await movies.limit(limit);
+      } else {
+        limit = (curpage - 1) * perpage;
+        const last = await movies.limit(limit).exec();
+        console.log(last);
+        movies = movies.limit(perpage).startAt(last.lastKey);
+      }
+    }
+    movies = await movies.exec();
+    console.log(movies);
     return movies;
   } catch (err) {
     console.log(err);

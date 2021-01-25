@@ -1,48 +1,6 @@
 import Movie from "../models/movies";
 import { v4 as uuidv4 } from "uuid";
 
-function order(movies, orderby) {
-  // order
-  let movie_arr = movies;
-  let key = Object.getOwnPropertyNames(orderby);
-  let order = orderby[key[0]];
-  key = key[0];
-  if (order == "asc") {
-    movies = movie_arr.sort((a, b) => (a[key] > b[key] ? 1 : -1));
-  } else {
-    movies = movie_arr.sort((a, b) => (a[key] > b[key] ? -1 : 1));
-  }
-  return movies;
-}
-function page(movies, pagination) {
-  // console.log(movies);
-  let max;
-  let movie_arr;
-  const curpage = pagination.curpage;
-  const perpage = pagination.perpage;
-
-  movie_arr = movies;
-  max = movies.length;
-  console.log(movie_arr);
-
-  let tot_page;
-  if (max % perpage != 0) {
-    tot_page = parseInt(max / perpage) + 1;
-  } else {
-    tot_page = max / perpage;
-  }
-  console.log(movie_arr);
-
-  let offset = (curpage - 1) * perpage;
-  // console.log(movie_arry);
-  if (curpage <= tot_page) {
-    movies = movie_arr.slice(offset, offset + perpage);
-  } else {
-    movies = [];
-  }
-  return movies;
-}
-
 async function insertTestDB() {
   try {
     await Movie.insertMany([
@@ -139,55 +97,35 @@ async function getMovie(id) {
 }
 
 async function searchMovie(args) {
+  let query = Movie.find();
+  let movies;
   try {
-    let movies;
-
     if (args.search) {
-      // 1. search
-      // AND 조건
-      if (args.search.andor == "and" || args.search.andor == null) {
-        delete args.search["andor"];
-        // console.log(args.search);
-        movies = await Movie.find(args.search);
-        // console.log(movies);
-
-        // OR 조건
-      } else {
-        let query = [];
-        for (var i in args.search) {
-          if (i != "andor") {
-            query.push({ [i]: args.search[i] });
-          }
+      let search = [];
+      for (var i in args.search) {
+        if (i != "andor") {
+          search.push({ [i]: args.search[i] });
         }
-        movies = await Movie.find({ $or: query });
       }
-
-      // 2. search + sort + page
-      if (args.orderby != null && args.pagination != null) {
-        movies = order(movies, args.orderby);
-        movies = page(movies, args.pagination);
-      } else if (args.orderby) {
-        // 3. search + sort
-        console.log(movies);
-        movies = order(movies, args.orderby);
-      } else if (args.pagination) {
-        // 4. search + page
-        movies = page(movies, args.pagination);
+      // AND , OR condition
+      if (args.search.andor == "and" || args.search.andor == null) {
+        query.and(search);
+      } else {
+        query.or(search);
       }
-    } else if (args.orderby) {
-      // 5. sort
-      movies = await Movie.find({}).sort(args.orderby);
-      // 6. sort + page
-      if (args.pagination) {
-        movies = page(movies, args.pagination);
-      }
-    } else if (args.pagination) {
-      // 7. page
-      movies = await Movie.find({});
-      movies = page(movies, args.pagination);
-    } else {
-      movies = await Movie.find({});
     }
+    if (args.orderby) {
+      let key = Object.getOwnPropertyNames(args.orderby);
+      let order = args.orderby[key[0]];
+      key = key[0];
+      query.sort({ [key]: order });
+    }
+    if (args.pagination) {
+      const curpage = args.pagination.curpage;
+      const perpage = args.pagination.perpage;
+      query.skip((curpage - 1) * perpage).limit(perpage);
+    }
+    movies = await query.exec();
     return movies;
   } catch (err) {
     console.log(err);

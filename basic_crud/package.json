@@ -14,7 +14,7 @@
     "uuid": "^8.3.2"
   },
   "scripts": {
-    "start": "nodemon --exec babel-node app.js"
+    "start": "nodemon --exec babel-node app.js dynamo"
   },
   "devDependencies": {
     "babel-preset-env": "^1.7.0",

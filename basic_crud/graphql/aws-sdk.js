@@ -9,13 +9,14 @@ const tablename = "test02-movie4";
 
 function search(params) {
   return new Promise(function (resolve, reject) {
+    console.log(params);
     docClient.query(params, function (err, data) {
       if (err) {
-        // console.log(err);
+        console.log(err);
         return reject(err);
       } else {
-        // console.log(data.Items);
-        return resolve(data.Items);
+        console.log(data);
+        return resolve(data);
       }
     });
   });
@@ -30,90 +31,86 @@ async function searchMovie(args) {
       ":z": 1,
     };
     params.KeyConditionExpression = "dumy= :z ";
-    if (args) {
-      if (args.search) {
-        // 1. search
-        let key = Object.getOwnPropertyNames(args.search);
-        // and,or 검색 조건부
-        let filter = [];
-        if (key.includes("title")) {
-          params.ExpressionAttributeValues[":t"] = args.search["title"];
-          filter.push("title=:t");
+    if (args.search) {
+      // 1. search
+      let key = Object.getOwnPropertyNames(args.search);
+      // and,or 검색 조건부
+      let filter = [];
+      if (key.includes("title")) {
+        params.ExpressionAttributeValues[":t"] = args.search["title"];
+        filter.push("title=:t");
+      }
+      if (key.includes("score")) {
+        params.ExpressionAttributeValues[":s"] = args.search["score"];
+        filter.push("score=:s");
+      }
+      if (key.includes("desc")) {
+        params.ExpressionAttributeValues[":d"] = args.search["desc"];
+        // DB reserved name 사용
+        params.ExpressionAttributeNames = {
+          "#desc": "desc",
+        };
+        filter.push("#desc=:d");
+      }
+      if (key.includes("watched")) {
+        params.ExpressionAttributeValues[":w"] = args.search["watched"];
+        filter.push("watched=:w");
+      }
+      if (key.includes("info")) {
+        let info_key = Object.getOwnPropertyNames(args.search["info"]);
+        console.log(info_key);
+        if (info_key.includes("lang")) {
+          params.ExpressionAttributeValues[":l"] = args.search["info"].lang;
+          filter.push("info.lang=:l");
         }
-        if (key.includes("score")) {
-          params.ExpressionAttributeValues[":s"] = args.search["score"];
-          params.FilterExpression += andor + " score=:s ";
+        if (info_key.includes("subtitle")) {
+          params.ExpressionAttributeValues[":sub"] =
+            args.search["info"].subtitle;
+          filter.push("info.subtitle=:sub");
         }
-        if (key.includes("desc")) {
-          params.ExpressionAttributeValues[":d"] = args.search["desc"];
-          // DB reserved name 사용
-          params.ExpressionAttributeNames = {
-            "#desc": "desc",
-          };
-          filter.push("#desc=:d");
+        if (info_key.includes("dubbing")) {
+          params.ExpressionAttributeValues[":dub"] =
+            args.search["info"].dubbing;
+          filter.push("info.dubbing=:dub");
         }
-        if (key.includes("watched")) {
-          params.ExpressionAttributeValues[":w"] = args.search["watched"];
-          filter.push("watched=:w");
-        }
-        if (key.includes("info")) {
-          let info_key = Object.getOwnPropertyNames(args.search["info"]);
-          console.log(info_key);
-          if (info_key.includes("lang")) {
-            params.ExpressionAttributeValues[":l"] = args.search["info"].lang;
-            filter.push("info.lang=:l");
-          }
-          if (info_key.includes("subtitle")) {
-            params.ExpressionAttributeValues[":sub"] =
-              args.search["info"].subtitle;
-            filter.push("info.subtitle=:sub");
-          }
-          if (info_key.includes("dubbing")) {
-            params.ExpressionAttributeValues[":dub"] =
-              args.search["info"].dubbing;
-            filter.push("info.dubbing=:dub");
-          }
-        }
+      }
 
-        // AND or OR search
-        if (args.search.andor == "and" || args.search.andor == null) {
-          params.FilterExpression = filter.join(" and ");
-        } else if (args.search.andor == "or") {
-          params.FilterExpression = filter.join(" or ");
-        }
+      // AND or OR search
+      if (args.search.andor == "and" || args.search.andor == null) {
+        params.FilterExpression = filter.join(" and ");
+      } else if (args.search.andor == "or") {
+        params.FilterExpression = filter.join(" or ");
       }
-      if (args.orderby) {
-        // order
-        let key = Object.getOwnPropertyNames(args.orderby);
-        let order = args.orderby[key[0]];
-        key = key[0];
-
-        // Sort- key 설정
-        params.IndexName = key + "-index";
-        if (order == "asc") {
-          params.ScanIndexForward = true;
-        } else {
-          params.ScanIndexForward = false;
-        }
-      }
-      if (args.pagination) {
-        const perpage = args.pagination.perpage;
-        const curpage = args.pagination.curpage;
-        // params.ExclusiveStartKey = { dumy: 1 };
-        params.Limit = perpage + 1;
-      }
-      //
-      search(params)
-        .then((res) => {
-          console.log(res);
-          return resolve(res);
-        })
-        .catch((err) => {
-          console.log(err);
-          return reject(err);
-        });
-    } else {
     }
+    if (args.orderby) {
+      // order
+      let key = Object.getOwnPropertyNames(args.orderby);
+      let order = args.orderby[key[0]];
+      key = key[0];
+
+      // Sort- key 설정
+      if (key != "id") {
+        params.IndexName = key + "-index";
+      }
+      if (order == "asc") {
+        params.ScanIndexForward = true;
+      } else {
+        params.ScanIndexForward = false;
+      }
+    }
+    if (args.pagination) {
+      const perpage = args.pagination.perpage;
+      const curpage = args.pagination.curpage;
+      // params.ExclusiveStartKey = { dumy: 1 };
+      params.Limit = perpage;
+    }
+    search(params)
+      .then((res) => {
+        return resolve(res.Items);
+      })
+      .catch((err) => {
+        return reject(err);
+      });
   });
 }
 
