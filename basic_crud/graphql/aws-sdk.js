@@ -102,7 +102,22 @@ async function searchMovie(args) {
       const perpage = args.pagination.perpage;
       const curpage = args.pagination.curpage;
       // params.ExclusiveStartKey = { dumy: 1 };
-      params.Limit = perpage;
+      let limit;
+      if (curpage == 1) {
+        limit = perpage;
+        params.Limit = limit;
+      } else {
+        limit = (curpage - 1) * perpage;
+        params.Limit = limit;
+        search(params)
+          .then((res) => {
+            params.ExclusiveStartKey = res.Items.LastEvaluatedKey;
+            params.Limit = perpage;
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      }
     }
     search(params)
       .then((res) => {
