@@ -22,6 +22,30 @@ function search(params) {
   });
 }
 
+function page(movies, pagination) {
+  // console.log(movies);
+  const curpage = pagination.curpage;
+  const perpage = pagination.perpage;
+  let movie_arr = movies.Items;
+  let max = movie_arr.length;
+  let ret;
+  let tot_page;
+  if (max % perpage != 0) {
+    tot_page = parseInt(max / perpage) + 1;
+  } else {
+    tot_page = max / perpage;
+  }
+
+  let offset = (curpage - 1) * perpage;
+  // console.log(movie_arry);
+  if (curpage <= tot_page) {
+    ret = movie_arr.slice(offset, offset + perpage);
+  } else {
+    ret = [];
+  }
+  return ret;
+}
+
 async function searchMovie(args) {
   let params = {
     TableName: tablename,
@@ -38,17 +62,17 @@ async function searchMovie(args) {
       let filter = [];
       if (key.includes("title")) {
         params.ExpressionAttributeValues[":t"] = args.search["title"];
-        filter.push("title=:t");
+        filter.push("s_title=:t");
       }
       if (key.includes("score")) {
         params.ExpressionAttributeValues[":s"] = args.search["score"];
-        filter.push("score=:s");
+        filter.push("s_score=:s");
       }
       if (key.includes("desc")) {
         params.ExpressionAttributeValues[":d"] = args.search["desc"];
         // DB reserved name 사용
         params.ExpressionAttributeNames = {
-          "#desc": "desc",
+          "#desc": "s_desc",
         };
         filter.push("#desc=:d");
       }
@@ -99,29 +123,18 @@ async function searchMovie(args) {
       }
     }
     if (args.pagination) {
-      const perpage = args.pagination.perpage;
-      const curpage = args.pagination.curpage;
-      // params.ExclusiveStartKey = { dumy: 1 };
-      let limit;
-      if (curpage == 1) {
-        limit = perpage;
-        params.Limit = limit;
-      } else {
-        limit = (curpage - 1) * perpage;
-        params.Limit = limit;
-        search(params)
-          .then((res) => {
-            params.ExclusiveStartKey = res.Items.LastEvaluatedKey;
-            params.Limit = perpage;
-          })
-          .catch((err) => {
-            console.log(err);
-          });
-      }
+      search(params)
+        .then((movies) => {
+          const result = page(movies, args.pagination);
+          return resolve(result);
+        })
+        .catch((err) => {
+          return reject(err);
+        });
     }
     search(params)
-      .then((res) => {
-        return resolve(res.Items);
+      .then((data) => {
+        return resolve(data.Items);
       })
       .catch((err) => {
         return reject(err);

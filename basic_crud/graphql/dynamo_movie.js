@@ -46,13 +46,13 @@ async function searchMovie(args) {
       } else if (args.search.andor == "or") {
         movies = movies.and().parenthesis((condition) => {
           if (key.includes("title")) {
-            condition = condition.or().where("title").eq(args.search.title);
+            condition = condition.or().where("s_title").eq(args.search.title);
           }
           if (key.includes("score")) {
-            condition = condition.or().where("score").eq(args.search.score);
+            condition = condition.or().where("s_score").eq(args.search.score);
           }
           if (key.includes("desc")) {
-            condition = condition.or().where("desc").eq(args.search.desc);
+            condition = condition.or().where("s_desc").eq(args.search.desc);
           }
           if (key.includes("watched")) {
             condition = condition.or().where("watched").eq(args.search.watched);
@@ -207,6 +207,9 @@ async function insertTestDB() {
           lang: "eng",
           subtitle: "kor",
         },
+        s_title: "abc",
+        s_score: 1,
+        s_desc: "samsung",
       },
       {
         dumy: 1,
@@ -219,6 +222,9 @@ async function insertTestDB() {
           lang: "kor",
           dubbing: "eng",
         },
+        s_title: "abc",
+        s_score: 2,
+        s_desc: "sample",
       },
       {
         dumy: 1,
@@ -231,6 +237,9 @@ async function insertTestDB() {
           lang: "kor",
           subtitle: "eng",
         },
+        s_title: "abc",
+        s_score: 3,
+        s_desc: "test",
       },
       {
         dumy: 1,
@@ -243,6 +252,9 @@ async function insertTestDB() {
           lang: "ger",
           dubbing: "eng",
         },
+        s_title: "test6",
+        s_score: 54,
+        s_desc: "sample",
       },
       {
         dumy: 1,
@@ -255,6 +267,9 @@ async function insertTestDB() {
           lang: "eng",
           dubbing: "kor",
         },
+        s_title: "jan",
+        s_score: 40,
+        s_desc: "jap",
       },
       {
         dumy: 1,
@@ -267,6 +282,9 @@ async function insertTestDB() {
           lang: "eng",
           subtitle: "kor",
         },
+        s_title: "vatech",
+        s_score: 999,
+        s_desc: "vatech_test",
       },
     ]);
     return true;

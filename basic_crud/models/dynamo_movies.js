@@ -1,4 +1,5 @@
 import dynamoose from "dynamoose";
+import { stringify } from "uuid";
 
 const movieSchema = new dynamoose.Schema(
   {
@@ -36,6 +37,18 @@ const movieSchema = new dynamoose.Schema(
     },
     dubbing: {
       type: String,
+    },
+    s_title: {
+      type: String,
+      required: true,
+    },
+    s_score: {
+      type: Number,
+      required: false,
+    },
+    s_desc: {
+      type: String,
+      required: false,
     },
   },
   {
