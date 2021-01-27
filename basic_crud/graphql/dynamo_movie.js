@@ -176,12 +176,29 @@ async function removeMovie(id) {
 async function updateMovie(args) {
   const origin = await Movie.get({ dumy: 1, id: args.id });
   console.log(origin);
+  let watched;
+  if (origin.watched != null) {
+    if (args.watched != null) {
+      watched = args.watched;
+    } else {
+      watched = origin.watched;
+    }
+  } else {
+    if (args.watched != null) {
+      watched = args.watched;
+    } else {
+      watched = false;
+    }
+  }
   const update_query = {
     title: args.title || origin.title,
     score: args.score || origin.score,
     desc: args.desc || origin.desc,
-    watched: args.watched || origin.watched,
+    watched: watched,
     info: args.info || origin.info || {},
+    s_title: args.title || origin.title,
+    s_score: args.score || origin.score,
+    s_desc: args.desc || origin.desc,
   };
   try {
     const result = await Movie.update({ dumy: 1, id: args.id }, update_query);

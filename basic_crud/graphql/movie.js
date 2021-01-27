@@ -135,12 +135,26 @@ async function searchMovie(args) {
 
 async function updateMovie(args) {
   const origin = await Movie.findOne({ id: args.id });
+  let watched;
+  if (origin.watched != null) {
+    if (args.watched != null) {
+      watched = args.watched;
+    } else {
+      watched = origin.watched;
+    }
+  } else {
+    if (args.watched != null) {
+      watched = args.watched;
+    } else {
+      watched = false;
+    }
+  }
 
   const update_query = {
     title: args.title || origin.title,
     score: args.score || origin.score,
     desc: args.desc || origin.desc,
-    watched: args.watched || origin.watched,
+    watched: watched,
     info: args.info || origin.info || {},
   };
   try {
