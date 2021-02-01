@@ -1,10 +1,10 @@
 var AWS = require("aws-sdk");
+import { v4 as uuidv4 } from "uuid";
+
 AWS.config.update({ region: "us-east-2" });
 // var ddb = new AWS.DynamoDB({ apiVersion: "2021-01-18" });
 // Create DynamoDB document client
 var docClient = new AWS.DynamoDB.DocumentClient({ apiVersion: "2021-01-18" });
-import { v4 as uuidv4 } from "uuid";
-
 const tablename = "test02-movie4";
 
 function search(params) {

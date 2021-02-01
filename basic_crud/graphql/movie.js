@@ -104,7 +104,15 @@ async function searchMovie(args) {
       let search = [];
       for (var i in args.search) {
         if (i != "andor") {
-          search.push({ [i]: args.search[i] });
+          if (i != "info") {
+            console.log("!!");
+            search.push({ [i]: args.search[i] });
+          } else {
+            console.log(args.search[i]);
+            let info = JSON.parse(JSON.stringify(args.search[i]));
+            search.push({ info });
+            console.log(search);
+          }
         }
       }
       // AND , OR condition
