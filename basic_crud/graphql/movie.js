@@ -3,80 +3,31 @@ import { v4 as uuidv4 } from "uuid";
 
 async function insertTestDB() {
   try {
-    await Movie.insertMany([
-      {
+    let item_arr = [];
+    for (let i = 0; i < 10000; i++) {
+      let ti = Math.random().toString(36).substring(7);
+      let des = Math.random().toString(36).substring(7);
+      let sco = Math.floor(Math.random() * 99 + 1);
+      let wat = Math.floor(Math.random() * 10) % 2 == 0 ? true : false;
+      let inf =
+        Math.floor(Math.random() * 10) % 2 == 0
+          ? { lang: "eng", subtitle: "kor" }
+          : { lang: "kor", dubbing: "eng" };
+      item_arr.push({
         dumy: 1,
         id: uuidv4(),
-        title: "abc",
-        score: 1,
-        desc: "",
-        watched: true,
-        info: {
-          lang: "eng",
-          subtitle: "kor",
-        },
-      },
-      {
-        dumy: 1,
-        id: uuidv4(),
-        title: "abc",
-        score: 2,
-        desc: "sample",
-        watched: false,
-        info: {
-          lang: "kor",
-          dubbing: "eng",
-        },
-      },
-      {
-        dumy: 1,
-        id: uuidv4(),
-        title: "abc",
-        score: 3,
-        desc: "test",
-        watched: true,
-        info: {
-          lang: "kor",
-          subtitle: "eng",
-        },
-      },
-      {
-        dumy: 1,
-        id: uuidv4(),
-        title: "test6",
-        score: 54,
-        desc: "sample",
-        watched: true,
-        info: {
-          lang: "ger",
-          dubbing: "eng",
-        },
-      },
-      {
-        dumy: 1,
-        id: uuidv4(),
-        title: "jan",
-        score: 40,
-        desc: "jap",
-        watched: false,
-        info: {
-          lang: "eng",
-          dubbing: "kor",
-        },
-      },
-      {
-        dumy: 1,
-        id: uuidv4(),
-        title: "vatech",
-        score: 999,
-        desc: "vatech_test",
-        watched: false,
-        info: {
-          lang: "eng",
-          subtitle: "kor",
-        },
-      },
-    ]);
+        title: ti,
+        score: sco,
+        desc: des,
+        s_title: ti,
+        s_score: sco,
+        s_desc: des,
+        watched: wat,
+        info: inf,
+      });
+    }
+    // console.log(item_arr);
+    await Movie.insertMany(item_arr);
 
     return true;
   } catch (err) {

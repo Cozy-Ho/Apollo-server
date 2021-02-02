@@ -1,6 +1,31 @@
 import Movie from "../models/dynamo_movies";
 import { v4 as uuidv4 } from "uuid";
 
+function page(movies, pagination) {
+  // console.log(movies);
+  const curpage = pagination.curpage;
+  const perpage = pagination.perpage;
+  let movie_arr = movies.toJSON();
+  console.log(movie_arr);
+  let max = movie_arr.length;
+  let ret;
+  let tot_page;
+  if (max % perpage != 0) {
+    tot_page = parseInt(max / perpage) + 1;
+  } else {
+    tot_page = max / perpage;
+  }
+
+  let offset = (curpage - 1) * perpage;
+  // console.log(movie_arry);
+  if (curpage <= tot_page) {
+    ret = movie_arr.slice(offset, offset + perpage);
+  } else {
+    ret = [];
+  }
+  return ret;
+}
+
 // title, score, watched, desc, orderby, curpage, perpage, err
 async function searchMovie(args) {
   try {
@@ -106,22 +131,12 @@ async function searchMovie(args) {
       }
     }
 
+    movies = await movies.exec();
+
     // PAGINATION
     if (args.pagination) {
-      const perpage = args.pagination.perpage;
-      const curpage = args.pagination.curpage;
-      let limit;
-      if (curpage == 1) {
-        limit = perpage;
-        movies = await movies.limit(limit);
-      } else {
-        limit = (curpage - 1) * perpage;
-        const last = await movies.limit(limit).exec();
-        console.log(last);
-        movies = movies.limit(perpage).startAt(last.lastKey);
-      }
+      movies = page(movies, args.pagination);
     }
-    movies = await movies.exec();
     console.log(movies);
     return movies;
   } catch (err) {
@@ -211,99 +226,41 @@ async function updateMovie(args) {
 }
 
 async function insertTestDB() {
+  let item_arr = [];
+  const sleep = (ms) => {
+    return new Promise((resolve) => {
+      setTimeout(resolve, ms);
+    });
+  };
   try {
-    await Movie.batchPut([
-      {
-        dumy: 1,
-        id: uuidv4(),
-        title: "abc",
-        score: 1,
-        desc: "samsung",
-        watched: true,
-        info: {
-          lang: "eng",
-          subtitle: "kor",
-        },
-        s_title: "abc",
-        s_score: 1,
-        s_desc: "samsung",
-      },
-      {
-        dumy: 1,
-        id: uuidv4(),
-        title: "abc",
-        score: 2,
-        desc: "sample",
-        watched: false,
-        info: {
-          lang: "kor",
-          dubbing: "eng",
-        },
-        s_title: "abc",
-        s_score: 2,
-        s_desc: "sample",
-      },
-      {
-        dumy: 1,
-        id: uuidv4(),
-        title: "abc",
-        score: 3,
-        desc: "test",
-        watched: true,
-        info: {
-          lang: "kor",
-          subtitle: "eng",
-        },
-        s_title: "abc",
-        s_score: 3,
-        s_desc: "test",
-      },
-      {
-        dumy: 1,
-        id: uuidv4(),
-        title: "test6",
-        score: 54,
-        desc: "sample",
-        watched: true,
-        info: {
-          lang: "ger",
-          dubbing: "eng",
-        },
-        s_title: "test6",
-        s_score: 54,
-        s_desc: "sample",
-      },
-      {
-        dumy: 1,
-        id: uuidv4(),
-        title: "jan",
-        score: 40,
-        desc: "jap",
-        watched: false,
-        info: {
-          lang: "eng",
-          dubbing: "kor",
-        },
-        s_title: "jan",
-        s_score: 40,
-        s_desc: "jap",
-      },
-      {
-        dumy: 1,
-        id: uuidv4(),
-        title: "vatech",
-        score: 999,
-        desc: "vatech_test",
-        watched: false,
-        info: {
-          lang: "eng",
-          subtitle: "kor",
-        },
-        s_title: "vatech",
-        s_score: 999,
-        s_desc: "vatech_test",
-      },
-    ]);
+    for (let i = 0; i < 400; i++) {
+      for (let j = 0; j < 25; j++) {
+        let ti = Math.random().toString(36).substring(7);
+        let des = Math.random().toString(36).substring(7);
+        let sco = Math.floor(Math.random() * 99 + 1);
+        let wat = Math.floor(Math.random() * 10) % 2 == 0 ? true : false;
+        let inf =
+          Math.floor(Math.random() * 10) % 2 == 0
+            ? { lang: "eng", subtitle: "kor" }
+            : { lang: "kor", dubbing: "eng" };
+        item_arr.push({
+          dumy: 1,
+          id: uuidv4(),
+          title: ti,
+          score: sco,
+          desc: des,
+          s_title: ti,
+          s_score: sco,
+          s_desc: des,
+          watched: wat,
+          info: inf,
+        });
+      }
+      console.log(item_arr);
+      const ret = await Movie.batchPut(item_arr);
+      await sleep(500);
+      item_arr = [];
+    }
     return true;
   } catch (err) {
     console.log(err);

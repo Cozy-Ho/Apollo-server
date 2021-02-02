@@ -265,6 +265,76 @@ async function removeMovie(id) {
     });
   });
 }
+async function insertTestDB() {
+  let item_arr = [];
+  const sleep = (ms) => {
+    return new Promise((resolve) => {
+      setTimeout(resolve, ms);
+    });
+  };
+
+  // A single call to BatchWriteItem can write up to 16 MB of data,
+  // which can comprise as many as 25 put or delete requests.
+  // Individual items to be written can be as large as 400 KB.
+  // BatchWriteItem cannot update items
+  try {
+    for (let t = 0; t < 400; t++) {
+      for (let i = 0; i < 25; i++) {
+        let ti = Math.random().toString(36).substring(7);
+        let des = Math.random().toString(36).substring(7);
+        let sco = Math.floor(Math.random() * 99 + 1);
+        let wat = (Math.random() * 10) % 2 == 0 ? true : false;
+        let inf =
+          (Math.random() * 10) % 6 == 0
+            ? { lang: "eng", subtitle: "kor" }
+            : (Math.random() * 10) % 2 == 0
+            ? { lang: "kor", dubbing: "eng" }
+            : { lang: "eng", dubbing: "jap" };
+        item_arr.push({
+          PutRequest: {
+            Item: {
+              dumy: 1,
+              id: uuidv4(),
+              title: ti,
+              score: sco,
+              desc: des,
+              s_title: ti,
+              s_score: sco,
+              s_desc: des,
+              watched: wat,
+              info: inf,
+            },
+          },
+        });
+      }
+      let params = {
+        RequestItems: {
+          [tablename]: item_arr,
+        },
+      };
+      // console.log(item_arr);
+      console.log(params);
+      const ret = await docClient.batchWrite(params, function (err, data) {
+        if (err) {
+          console.log("error", err);
+          return false;
+        } else {
+          console.log("success", data);
+          return true;
+        }
+      });
+      await sleep(1000);
+      if (ret) {
+        item_arr = [];
+      }
+    }
+
+    return true;
+  } catch (err) {
+    console.log(err);
+    return false;
+  }
+}
 
 module.exports = {
   getMovie,
@@ -272,4 +342,5 @@ module.exports = {
   createMovie,
   removeMovie,
   updateMovie,
+  insertTestDB,
 };

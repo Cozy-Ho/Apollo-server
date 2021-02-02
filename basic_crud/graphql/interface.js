@@ -9,6 +9,8 @@ function insertTestDB() {
       return mongo_movie.insertTestDB();
     } else if (config.select == "dynamo") {
       return dynamo_movie.insertTestDB();
+    } else if (config.select == "aws") {
+      return aws_movie.insertTestDB();
     } else {
       throw err;
     }
