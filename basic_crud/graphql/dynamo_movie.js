@@ -167,6 +167,9 @@ async function createMovie(args) {
       desc: args.desc || "",
       score: args.score || 0,
       watched: args.watched || false,
+      s_title: args.title,
+      s_desc: args.desc || "",
+      s_score: args.score || 0,
       info: info,
     });
     console.log(result);
@@ -225,6 +228,47 @@ async function updateMovie(args) {
   }
 }
 
+async function deleteAll() {
+  let id_arr = [];
+  try {
+    let ids = await Movie.query("dumy").eq(1).attributes(["id"]).exec();
+    ids = ids.toJSON();
+    // console.log(ids);
+
+    // 아 야발 망 할 비 동 기 방 식!!!!!
+    // id_arr이 필터링이 끝나기 전에 if문으로 넘어가 버린다..
+    for (let i = 0; i < ids.length; i++) {
+      id_arr.push({ dumy: 1, id: ids[i].id });
+      if (i % 25 == 0 && i != 0) {
+        await Movie.batchDelete(id_arr, function (err, data) {
+          if (err) {
+            console.log(err);
+            return err;
+          } else {
+            console.log("DONE>>>");
+            id_arr = [];
+          }
+        });
+      }
+    }
+    if (id_arr.length > 0) {
+      await Movie.batchDelete(id_arr, function (err, data) {
+        if (err) {
+          console.log(err);
+          return err;
+        } else {
+          console.log("LAST+_+DONE>>>");
+        }
+      });
+    }
+    console.log("done!!");
+    return true;
+  } catch (err) {
+    console.log(err);
+    return false;
+  }
+}
+
 async function insertTestDB() {
   let item_arr = [];
   const sleep = (ms) => {
@@ -233,7 +277,7 @@ async function insertTestDB() {
     });
   };
   try {
-    for (let i = 0; i < 400; i++) {
+    for (let i = 0; i < 40; i++) {
       for (let j = 0; j < 25; j++) {
         let ti = Math.random().toString(36).substring(7);
         let des = Math.random().toString(36).substring(7);
@@ -256,9 +300,9 @@ async function insertTestDB() {
           info: inf,
         });
       }
-      console.log(item_arr);
-      const ret = await Movie.batchPut(item_arr);
-      await sleep(500);
+      // console.log(item_arr);
+      console.log("INSERT_DONE>>>");
+      await Movie.batchPut(item_arr);
       item_arr = [];
     }
     return true;
@@ -275,4 +319,5 @@ module.exports = {
   createMovie,
   removeMovie,
   updateMovie,
+  deleteAll,
 };

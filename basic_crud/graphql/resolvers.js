@@ -25,7 +25,7 @@ const resolvers = {
     updateMovie: (_, { ...args }) => EnterPoint.updateMovie(args),
 
     // TestDB
-    insertTestDB: () => EnterPoint.insertTestDB(),
+    insertTestDB: (_, { ...args }) => EnterPoint.insertTestDB(args),
     deleteAll: () => EnterPoint.deleteAll(),
     // Set database
     setDatabase: (_, { flag }) => EnterPoint.setDatabase(flag),

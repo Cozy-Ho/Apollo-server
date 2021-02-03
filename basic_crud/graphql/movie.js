@@ -56,13 +56,10 @@ async function searchMovie(args) {
       for (var i in args.search) {
         if (i != "andor") {
           if (i != "info") {
-            console.log("!!");
             search.push({ [i]: args.search[i] });
           } else {
-            console.log(args.search[i]);
             let info = JSON.parse(JSON.stringify(args.search[i]));
             search.push({ info });
-            console.log(search);
           }
         }
       }
@@ -85,6 +82,7 @@ async function searchMovie(args) {
       query.skip((curpage - 1) * perpage).limit(perpage);
     }
     movies = await query.exec();
+    console.log(movies);
     return movies;
   } catch (err) {
     console.log(err);

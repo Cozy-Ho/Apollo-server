@@ -5,7 +5,9 @@ AWS.config.update({ region: "us-east-2" });
 // var ddb = new AWS.DynamoDB({ apiVersion: "2021-01-18" });
 // Create DynamoDB document client
 var docClient = new AWS.DynamoDB.DocumentClient({ apiVersion: "2021-01-18" });
-const tablename = "test02-movie4";
+var ddb = new AWS.DynamoDB({ apiVersion: "2021-01-18" });
+
+let tablename = "test02-movie4";
 
 function search(params) {
   return new Promise(function (resolve, reject) {
@@ -44,6 +46,141 @@ function page(movies, pagination) {
     ret = [];
   }
   return ret;
+}
+
+async function createTable() {
+  let params = {
+    AttributeDefinitions: [
+      {
+        AttributeName: "dumy",
+        AttributeType: "N",
+      },
+      {
+        AttributeName: "id",
+        AttributeType: "S",
+      },
+      {
+        AttributeName: "title",
+        AttributeType: "S",
+      },
+      {
+        AttributeName: "score",
+        AttributeType: "N",
+      },
+      {
+        AttributeName: "desc",
+        AttributeType: "S",
+      },
+      {
+        AttributeName: "watched",
+        AttributeType: "B",
+      },
+      {
+        AttributeName: "s_title",
+        AttributeType: "S",
+      },
+      {
+        AttributeName: "s_score",
+        AttributeType: "N",
+      },
+      {
+        AttributeName: "s_desc",
+        AttributeType: "S",
+      },
+      {
+        AttributeName: "lang",
+        AttributeType: "S",
+      },
+      {
+        AttributeName: "subtitle",
+        AttributeType: "S",
+      },
+      {
+        AttributeName: "dubbing",
+        AttributeType: "S",
+      },
+    ],
+    KeySchema: [
+      {
+        AttributeName: "dumy",
+        KeyType: "HASH",
+      },
+      {
+        AttributeName: "id",
+        KeyType: "RANGE",
+      },
+    ],
+    ProvisionedThroughput: {
+      ReadCapacityUnits: 1,
+      WriteCapacityUnits: 1,
+    },
+    LocalSecondaryIndexes: [
+      {
+        IndexName: "title-index",
+        KeySchema: [
+          {
+            AttributeName: "dumy",
+            KeyType: "HASH",
+          },
+          {
+            AttributeName: "title",
+            KeyType: "RANGE",
+          },
+        ],
+        Projection: {
+          ProjectionType: "INCLUDE",
+          NonKeyAttributes: ["watched", "lang", "subtitle", "dubbing"],
+        },
+      },
+      {
+        IndexName: "score-index",
+        KeySchema: [
+          {
+            AttributeName: "dumy",
+            KeyType: "HASH",
+          },
+          {
+            AttributeName: "score",
+            KeyType: "RANGE",
+          },
+        ],
+        Projection: {
+          ProjectionType: "INCLUDE",
+          NonKeyAttributes: ["watched", "lang", "subtitle", "dubbing"],
+        },
+      },
+      {
+        IndexName: "desc-index",
+        KeySchema: [
+          {
+            AttributeName: "dumy",
+            KeyType: "HASH",
+          },
+          {
+            AttributeName: "desc",
+            KeyType: "RANGE",
+          },
+        ],
+        Projection: {
+          ProjectionType: "INCLUDE",
+          NonKeyAttributes: ["watched", "lang", "subtitle", "dubbing"],
+        },
+      },
+    ],
+    TableName: "test02-movie5",
+    StreamSpecification: {
+      StreamEnabled: false,
+    },
+  };
+  ddb.createTable(params, function (err, data) {
+    if (err) {
+      console.log("error", err);
+      return false;
+    } else {
+      console.log("Table Created!", data);
+      return true;
+    }
+  });
 }
 
 async function searchMovie(args) {
@@ -265,7 +402,76 @@ async function removeMovie(id) {
     });
   });
 }
-async function insertTestDB() {
+
+async function deleteAll() {
+  let params = {
+    TableName: tablename,
+  };
+  try {
+    params.Key = { dumy: 1 };
+    await docClient.delete(params, function (err, data) {
+      if (err) {
+        console.log(err);
+        return err;
+      } else {
+        console.log(data);
+      }
+    });
+    return true;
+  } catch (err) {
+    console.log(err);
+    return false;
+  }
+}
+
+async function migrate(data) {
+  let item_arr = [];
+  const sleep = (ms) => {
+    return new Promise((resolve) => {
+      setTimeout(resolve, ms);
+    });
+  };
+
+  try {
+    for (let i = 0; i < data.length; i++) {
+      item_arr.push({
+        PutRequest: {
+          Item: {
+            dumy: 1,
+            id: data[i].id,
+            title: data[i].title,
+            score: data[i].score,
+            desc: data[i].desc,
+            s_title: data[i].title,
+            s_score: data[i].score,
+            s_desc: data[i].desc,
+            watched: data[i].watched,
+            info: data[i].info,
+          },
+        },
+      });
+      if (i % 25 == 0) {
+        let params = {
+          RequestItems: {
+            [tablename]: item_arr,
+          },
+        };
+        const ret = await docClient.batchWrite(params);
+        await sleep(500);
+        if (ret) {
+          item_arr = [];
+        }
+      }
+    }
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+async function insertTestDB(args) {
+  if (args.new) {
+    return await createTable();
+  }
   let item_arr = [];
   const sleep = (ms) => {
     return new Promise((resolve) => {
@@ -343,4 +549,7 @@ module.exports = {
   removeMovie,
   updateMovie,
   insertTestDB,
+  migrate,
+  deleteAll,
+  createTable,
 };

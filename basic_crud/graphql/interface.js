@@ -3,14 +3,14 @@ import dynamo_movie from "./dynamo_movie";
 import aws_movie from "./aws-sdk";
 import config from "../config/config";
 
-function insertTestDB() {
+function insertTestDB(args) {
   try {
     if (config.select == "mongo") {
-      return mongo_movie.insertTestDB();
+      return mongo_movie.insertTestDB(args);
     } else if (config.select == "dynamo") {
-      return dynamo_movie.insertTestDB();
+      return dynamo_movie.insertTestDB(args);
     } else if (config.select == "aws") {
-      return aws_movie.insertTestDB();
+      return aws_movie.insertTestDB(args);
     } else {
       throw err;
     }
@@ -26,6 +26,8 @@ async function deleteAll() {
       return await mongo_movie.deleteAll();
     } else if (config.select == "dynamo") {
       return await dynamo_movie.deleteAll();
+    } else if (config.select == "aws") {
+      return await aws_movie.deleteAll();
     } else {
       throw err;
     }
