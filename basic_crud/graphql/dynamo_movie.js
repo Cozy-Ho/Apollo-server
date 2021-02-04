@@ -158,20 +158,21 @@ async function getMovie(id) {
 
 async function createMovie(args) {
   const info = args.info;
+  let param = {
+    dumy: 1,
+    id: uuidv4(),
+    title: args.title,
+    desc: args.desc || "",
+    score: args.score || 0,
+    watched: args.watched || false,
+    s_title: args.title,
+    s_desc: args.desc || "",
+    s_score: args.score || 0,
+    info: info,
+  };
 
   try {
-    const result = await Movie.create({
-      dumy: 1,
-      id: uuidv4(),
-      title: args.title,
-      desc: args.desc || "",
-      score: args.score || 0,
-      watched: args.watched || false,
-      s_title: args.title,
-      s_desc: args.desc || "",
-      s_score: args.score || 0,
-      info: info,
-    });
+    const result = await Movie.create(param);
     console.log(result);
 
     return result;
@@ -230,6 +231,7 @@ async function updateMovie(args) {
 
 async function deleteAll() {
   try {
+    // 1MB 초과해서 lasykey로 잘리는 부분 해결하기...
     let ids = await Movie.query("dumy").eq(1).attributes(["dumy", "id"]).exec();
     ids = ids.toJSON();
 
@@ -249,13 +251,8 @@ async function deleteAll() {
 
 async function insertTestDB() {
   let item_arr = [];
-  const sleep = (ms) => {
-    return new Promise((resolve) => {
-      setTimeout(resolve, ms);
-    });
-  };
   try {
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < 400; i++) {
       for (let j = 0; j < 25; j++) {
         let ti = Math.random().toString(36).substring(7);
         let des = Math.random().toString(36).substring(7);
@@ -279,14 +276,69 @@ async function insertTestDB() {
         });
       }
       // console.log(item_arr);
-      console.log("INSERT_DONE>>>" + i);
       await Movie.batchPut(item_arr);
+      console.log("INSERT_DONE>>>" + i);
       item_arr = [];
     }
     return true;
   } catch (err) {
     console.log(err);
     return false;
+  }
+}
+
+async function migration(args) {
+  if (args.getData) {
+    let movies = await searchMovie("");
+    let ret_arr = [];
+    ret_arr.push(movies.toJSON());
+    let flag;
+    let key = movies.lastKey;
+    if (key) {
+      flag = true;
+    } else {
+      flag = false;
+    }
+    while (flag) {
+      console.log(key);
+      let temp = await Movie.query("dumy").eq(1).startAt(key).exec();
+      ret_arr.push(temp.toJSON());
+      if (temp.lastKey === undefined) {
+        flag != flag;
+        break;
+      } else {
+        key = temp.lastKey;
+      }
+    }
+
+    return ret_arr;
+  }
+  if (args.putData) {
+    let data = args.data;
+    let item_arr = [];
+    for (let i = 0; i < data.length; i++) {
+      item_arr.push({
+        dumy: 1,
+        id: data[i].id,
+        title: data[i].title,
+        socre: data[i].score,
+        desc: data[i].desc,
+        s_title: data[i].title,
+        s_score: data[i].score,
+        s_desc: data[i].desc,
+        watched: data[i].watched,
+        info: data[i].info,
+      });
+    }
+    console.log("CONSOLE DATA>>>", data);
+    for (let i = 0; i < item_arr.length / 25 + 1; i++) {
+      let begin = i * 25;
+      let end = begin + 25;
+      if (!item_arr[begin]) break;
+      await Movie.batchPut(item_arr.slice(begin, end));
+      console.log("MIGRATING>>>>" + i);
+    }
+    return true;
   }
 }
 
@@ -298,4 +350,5 @@ module.exports = {
   removeMovie,
   updateMovie,
   deleteAll,
+  migration,
 };

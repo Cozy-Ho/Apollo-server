@@ -7,9 +7,9 @@ function insertTestDB(args) {
   try {
     if (config.select == "mongo") {
       return mongo_movie.insertTestDB(args);
-    } else if (config.select == "dynamo") {
+    } else if (config.select == "dynamo" && !args.new) {
       return dynamo_movie.insertTestDB(args);
-    } else if (config.select == "aws") {
+    } else if (config.select == "aws" || args.new) {
       return aws_movie.insertTestDB(args);
     } else {
       throw err;
@@ -127,6 +127,24 @@ async function removeMovie(id) {
   }
 }
 
+async function migrate(args) {
+  if (args.migFrom == "dynamo") {
+    if (args.migTo == "mongo") {
+      let data = await dynamo_movie.migration({ getData: true });
+      return await mongo_movie.migration({ putData: true, data: data });
+    } else {
+      //
+    }
+  } else if (args.migFrom == "mongo") {
+    if (args.migTo == "dynamo") {
+      let data = await mongo_movie.migration({ getData: true });
+      return await dynamo_movie.migration({ putData: true, data: data });
+    } else {
+      //
+    }
+  }
+}
+
 module.exports = {
   insertTestDB,
   deleteAll,
@@ -136,4 +154,5 @@ module.exports = {
   createMovie,
   updateMovie,
   removeMovie,
+  migrate,
 };

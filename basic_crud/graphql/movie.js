@@ -1,7 +1,18 @@
-import Movie from "../models/movies";
+import movieSchema from "../models/movies";
+import mongoose from "mongoose";
 import { v4 as uuidv4 } from "uuid";
 
-async function insertTestDB() {
+let tableName = "Movie999";
+let Movie = mongoose.model(tableName, movieSchema);
+
+function setTableName(tName) {
+  tableName = tName;
+}
+
+async function insertTestDB(args) {
+  if (args.new) {
+    return await createTable(args);
+  }
   try {
     let item_arr = [];
     for (let i = 0; i < 10000; i++) {
@@ -34,6 +45,12 @@ async function insertTestDB() {
     console.log(err);
     return false;
   }
+}
+
+async function createTable(args) {
+  Movie = mongoose.model(args.tableName, movieSchema);
+  setTableName(args.tableName);
+  return true;
 }
 
 async function getMovie(id) {
@@ -161,6 +178,7 @@ async function createMovie(args) {
     throw err;
   }
 }
+
 async function deleteAll() {
   try {
     await Movie.remove({});
@@ -168,6 +186,20 @@ async function deleteAll() {
   } catch (err) {
     console.log(err);
     return false;
+  }
+}
+
+async function migration(args) {
+  if (args.getData) {
+    return await searchMovie(args);
+  }
+  if (args.putData) {
+    let data = args.data;
+    console.log(data);
+    for (let i = 0; i < data.length; i++) {
+      await Movie.insertMany(data[i]);
+    }
+    return true;
   }
 }
 
@@ -179,4 +211,5 @@ module.exports = {
   updateMovie,
   insertTestDB,
   deleteAll,
+  migration,
 };

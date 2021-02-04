@@ -33,9 +33,10 @@ type Mutation {
     info: InputInfo
   ): Movie!
   removeMovie(id: String!): String
-  insertTestDB(new: Boolean): Boolean
+  insertTestDB(new: Boolean, tableName: String): Boolean
   deleteAll: Boolean
   setDatabase(flag: Int!): String!
+  migrate(migFrom: String, migTo: String): Boolean
 }
 
 union Info = Sub | Dub

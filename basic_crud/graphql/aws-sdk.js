@@ -9,6 +9,12 @@ var ddb = new AWS.DynamoDB({ apiVersion: "2021-01-18" });
 
 let tablename = "test02-movie4";
 
+const sleep = (ms) => {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+};
+
 function search(params) {
   return new Promise(function (resolve, reject) {
     console.log(params);
@@ -17,7 +23,7 @@ function search(params) {
         console.log(err);
         return reject(err);
       } else {
-        console.log(data);
+        console.log(">>> SEARCH_DONE >>>");
         return resolve(data);
       }
     });
@@ -48,7 +54,11 @@ function page(movies, pagination) {
   return ret;
 }
 
-async function createTable() {
+function setTableName(tName) {
+  tablename = tName;
+}
+
+async function createTable(args) {
   let params = {
     AttributeDefinitions: [
       {
@@ -136,7 +146,7 @@ async function createTable() {
         },
       },
     ],
-    TableName: "test02-movie5",
+    TableName: args.tableName,
     StreamSpecification: {
       StreamEnabled: false,
     },
@@ -147,6 +157,7 @@ async function createTable() {
       return false;
     } else {
       console.log("Table Created!", data);
+      setTableName(args.tableName);
       return true;
     }
   });
@@ -376,16 +387,47 @@ async function deleteAll() {
   let params = {
     TableName: tablename,
   };
+  params.ExpressionAttributeValues = {
+    ":z": 1,
+  };
+  params.KeyConditionExpression = "dumy= :z ";
+  params.ProjectionExpression = "dumy, id";
+  let ids = await search(params);
+  console.log(ids);
+  ids = ids.Items;
+  let item_arr = [];
   try {
-    params.Key = { dumy: 1 };
-    await docClient.delete(params, function (err, data) {
-      if (err) {
-        console.log(err);
-        return err;
-      } else {
-        console.log(data);
-      }
-    });
+    for (let i = 0; i < ids.length; i++) {
+      item_arr.push({
+        DeleteRequest: {
+          Key: {
+            dumy: 1,
+            id: ids[i].id,
+          },
+        },
+      });
+    }
+    // console.log(item_arr);
+    for (let j = 0; j < item_arr.length / 25 + 1; j++) {
+      let begin = j * 25;
+      let end = begin + 25;
+      if (!item_arr[begin]) break;
+
+      let new_params = {
+        RequestItems: {
+          [tablename]: item_arr.slice(begin, end),
+        },
+      };
+
+      docClient.batchWrite(new_params, function (err, data) {
+        if (err) {
+          console.log("err", err);
+        } else {
+          console.log("DELETED>>>" + j, data);
+        }
+      });
+      await sleep(500);
+    }
     return true;
   } catch (err) {
     console.log(err);
@@ -439,14 +481,9 @@ async function migrate(data) {
 
 async function insertTestDB(args) {
   if (args.new) {
-    return await createTable();
+    return await createTable(args);
   }
   let item_arr = [];
-  const sleep = (ms) => {
-    return new Promise((resolve) => {
-      setTimeout(resolve, ms);
-    });
-  };
 
   // A single call to BatchWriteItem can write up to 16 MB of data,
   // which can comprise as many as 25 put or delete requests.
@@ -488,17 +525,17 @@ async function insertTestDB(args) {
         },
       };
       // console.log(item_arr);
-      console.log(params);
+      // console.log(params);
       const ret = await docClient.batchWrite(params, function (err, data) {
         if (err) {
           console.log("error", err);
           return false;
         } else {
-          console.log("success", data);
+          console.log("success>>>" + t, data);
           return true;
         }
       });
-      await sleep(1000);
+      await sleep(500);
       if (ret) {
         item_arr = [];
       }
