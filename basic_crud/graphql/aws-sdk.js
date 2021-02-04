@@ -71,34 +71,6 @@ async function createTable() {
         AttributeName: "desc",
         AttributeType: "S",
       },
-      {
-        AttributeName: "watched",
-        AttributeType: "B",
-      },
-      {
-        AttributeName: "s_title",
-        AttributeType: "S",
-      },
-      {
-        AttributeName: "s_score",
-        AttributeType: "N",
-      },
-      {
-        AttributeName: "s_desc",
-        AttributeType: "S",
-      },
-      {
-        AttributeName: "lang",
-        AttributeType: "S",
-      },
-      {
-        AttributeName: "subtitle",
-        AttributeType: "S",
-      },
-      {
-        AttributeName: "dubbing",
-        AttributeType: "S",
-      },
     ],
     KeySchema: [
       {
@@ -128,8 +100,7 @@ async function createTable() {
           },
         ],
         Projection: {
-          ProjectionType: "INCLUDE",
-          NonKeyAttributes: ["watched", "lang", "subtitle", "dubbing"],
+          ProjectionType: "ALL",
         },
       },
       {
@@ -145,8 +116,7 @@ async function createTable() {
           },
         ],
         Projection: {
-          ProjectionType: "INCLUDE",
-          NonKeyAttributes: ["watched", "lang", "subtitle", "dubbing"],
+          ProjectionType: "ALL",
         },
       },
       {
@@ -162,8 +132,7 @@ async function createTable() {
           },
         ],
         Projection: {
-          ProjectionType: "INCLUDE",
-          NonKeyAttributes: ["watched", "lang", "subtitle", "dubbing"],
+          ProjectionType: "ALL",
         },
       },
     ],

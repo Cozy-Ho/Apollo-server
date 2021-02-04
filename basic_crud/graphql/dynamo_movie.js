@@ -229,39 +229,17 @@ async function updateMovie(args) {
 }
 
 async function deleteAll() {
-  let id_arr = [];
   try {
-    let ids = await Movie.query("dumy").eq(1).attributes(["id"]).exec();
+    let ids = await Movie.query("dumy").eq(1).attributes(["dumy", "id"]).exec();
     ids = ids.toJSON();
-    // console.log(ids);
 
-    // 아 야발 망 할 비 동 기 방 식!!!!!
-    // id_arr이 필터링이 끝나기 전에 if문으로 넘어가 버린다..
-    for (let i = 0; i < ids.length; i++) {
-      id_arr.push({ dumy: 1, id: ids[i].id });
-      if (i % 25 == 0 && i != 0) {
-        await Movie.batchDelete(id_arr, function (err, data) {
-          if (err) {
-            console.log(err);
-            return err;
-          } else {
-            console.log("DONE>>>");
-            id_arr = [];
-          }
-        });
-      }
+    for (let i = 0; i < ids.length / 25 + 1; i++) {
+      let begin = i * 25;
+      let end = begin + 25;
+      if (!ids[begin]) break;
+      await Movie.batchDelete(ids.slice(begin, end));
+      console.log("DELETED>>>" + i);
     }
-    if (id_arr.length > 0) {
-      await Movie.batchDelete(id_arr, function (err, data) {
-        if (err) {
-          console.log(err);
-          return err;
-        } else {
-          console.log("LAST+_+DONE>>>");
-        }
-      });
-    }
-    console.log("done!!");
     return true;
   } catch (err) {
     console.log(err);
@@ -301,7 +279,7 @@ async function insertTestDB() {
         });
       }
       // console.log(item_arr);
-      console.log("INSERT_DONE>>>");
+      console.log("INSERT_DONE>>>" + i);
       await Movie.batchPut(item_arr);
       item_arr = [];
     }
