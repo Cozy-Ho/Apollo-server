@@ -1,8 +1,7 @@
-// import mongoose from "mongoose";
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 const { Schema } = mongoose;
 
-const movieSchema = new Schema({
+const mongoSchema = new Schema({
   dumy: {
     type: Number,
     required: true,
@@ -45,4 +44,4 @@ const movieSchema = new Schema({
   },
 });
 
-module.exports = movieSchema;
+export default mongoSchema;

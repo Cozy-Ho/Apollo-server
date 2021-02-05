@@ -287,61 +287,6 @@ async function insertTestDB() {
   }
 }
 
-async function migration(args) {
-  if (args.getData) {
-    let movies = await searchMovie("");
-    let ret_arr = [];
-    ret_arr.push(movies.toJSON());
-    let flag;
-    let key = movies.lastKey;
-    if (key) {
-      flag = true;
-    } else {
-      flag = false;
-    }
-    while (flag) {
-      console.log(key);
-      let temp = await Movie.query("dumy").eq(1).startAt(key).exec();
-      ret_arr.push(temp.toJSON());
-      if (temp.lastKey === undefined) {
-        flag != flag;
-        break;
-      } else {
-        key = temp.lastKey;
-      }
-    }
-
-    return ret_arr;
-  }
-  if (args.putData) {
-    let data = args.data;
-    let item_arr = [];
-    for (let i = 0; i < data.length; i++) {
-      item_arr.push({
-        dumy: 1,
-        id: data[i].id,
-        title: data[i].title,
-        socre: data[i].score,
-        desc: data[i].desc,
-        s_title: data[i].title,
-        s_score: data[i].score,
-        s_desc: data[i].desc,
-        watched: data[i].watched,
-        info: data[i].info,
-      });
-    }
-    console.log("CONSOLE DATA>>>", data);
-    for (let i = 0; i < item_arr.length / 25 + 1; i++) {
-      let begin = i * 25;
-      let end = begin + 25;
-      if (!item_arr[begin]) break;
-      await Movie.batchPut(item_arr.slice(begin, end));
-      console.log("MIGRATING>>>>" + i);
-    }
-    return true;
-  }
-}
-
 module.exports = {
   getMovie,
   insertTestDB,
@@ -350,5 +295,4 @@ module.exports = {
   removeMovie,
   updateMovie,
   deleteAll,
-  migration,
 };

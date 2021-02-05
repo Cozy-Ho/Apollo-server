@@ -189,20 +189,6 @@ async function deleteAll() {
   }
 }
 
-async function migration(args) {
-  if (args.getData) {
-    return await searchMovie(args);
-  }
-  if (args.putData) {
-    let data = args.data;
-    console.log(data);
-    for (let i = 0; i < data.length; i++) {
-      await Movie.insertMany(data[i]);
-    }
-    return true;
-  }
-}
-
 module.exports = {
   getMovie,
   searchMovie,
@@ -211,5 +197,4 @@ module.exports = {
   updateMovie,
   insertTestDB,
   deleteAll,
-  migration,
 };

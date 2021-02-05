@@ -29,9 +29,6 @@ const resolvers = {
     deleteAll: () => EnteryPoint.deleteAll(),
     // Set database
     setDatabase: (_, { flag }) => EnteryPoint.setDatabase(flag),
-
-    // Migrate DB
-    migrate: (_, { ...args }) => EnteryPoint.migrate(args),
   },
 };
 export default resolvers;

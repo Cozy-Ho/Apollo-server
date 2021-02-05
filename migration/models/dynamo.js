@@ -1,6 +1,6 @@
 import dynamoose from "dynamoose";
 
-const movieSchema = new dynamoose.Schema(
+const dynamoSchema = new dynamoose.Schema(
   {
     dumy: {
       type: Number,
@@ -56,4 +56,4 @@ const movieSchema = new dynamoose.Schema(
   }
 );
 
-module.exports = dynamoose.model("test02-movie4", movieSchema);
+export default dynamoSchema;

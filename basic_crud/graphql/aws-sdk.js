@@ -1,5 +1,6 @@
 var AWS = require("aws-sdk");
 import { v4 as uuidv4 } from "uuid";
+import fs from "fs";
 
 AWS.config.update({ region: "us-east-2" });
 // var ddb = new AWS.DynamoDB({ apiVersion: "2021-01-18" });
@@ -435,50 +436,6 @@ async function deleteAll() {
   }
 }
 
-async function migrate(data) {
-  let item_arr = [];
-  const sleep = (ms) => {
-    return new Promise((resolve) => {
-      setTimeout(resolve, ms);
-    });
-  };
-
-  try {
-    for (let i = 0; i < data.length; i++) {
-      item_arr.push({
-        PutRequest: {
-          Item: {
-            dumy: 1,
-            id: data[i].id,
-            title: data[i].title,
-            score: data[i].score,
-            desc: data[i].desc,
-            s_title: data[i].title,
-            s_score: data[i].score,
-            s_desc: data[i].desc,
-            watched: data[i].watched,
-            info: data[i].info,
-          },
-        },
-      });
-      if (i % 25 == 0) {
-        let params = {
-          RequestItems: {
-            [tablename]: item_arr,
-          },
-        };
-        const ret = await docClient.batchWrite(params);
-        await sleep(500);
-        if (ret) {
-          item_arr = [];
-        }
-      }
-    }
-  } catch (err) {
-    console.log(err);
-  }
-}
-
 async function insertTestDB(args) {
   if (args.new) {
     return await createTable(args);
@@ -555,7 +512,6 @@ module.exports = {
   removeMovie,
   updateMovie,
   insertTestDB,
-  migrate,
   deleteAll,
   createTable,
 };

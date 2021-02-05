@@ -127,24 +127,6 @@ async function removeMovie(id) {
   }
 }
 
-async function migrate(args) {
-  if (args.migFrom == "dynamo") {
-    if (args.migTo == "mongo") {
-      let data = await dynamo_movie.migration({ getData: true });
-      return await mongo_movie.migration({ putData: true, data: data });
-    } else {
-      //
-    }
-  } else if (args.migFrom == "mongo") {
-    if (args.migTo == "dynamo") {
-      let data = await mongo_movie.migration({ getData: true });
-      return await dynamo_movie.migration({ putData: true, data: data });
-    } else {
-      //
-    }
-  }
-}
-
 module.exports = {
   insertTestDB,
   deleteAll,
@@ -154,5 +136,4 @@ module.exports = {
   createMovie,
   updateMovie,
   removeMovie,
-  migrate,
 };

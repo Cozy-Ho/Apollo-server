@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "app.js",
   "license": "MIT",
+  "type": "commonjs",
   "dependencies": {
     "apollo-server": "^2.19.2",
     "aws-sdk": "^2.828.0",
