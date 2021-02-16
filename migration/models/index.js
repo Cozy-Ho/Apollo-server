@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import dynamoose from "dynamoose";
+import AWS from "aws-sdk";
 import config from "../config/config.js";
 
 mongoose.Promise = global.Promise;
@@ -14,7 +15,7 @@ export function conn_mongo() {
       useUnifiedTopology: true,
     })
     .then(() => {
-      console.log("MongoDB Connected!!");
+      // console.log("MongoDB Connected!!");
     })
     .catch((err) => {
       console.log(err);
@@ -27,5 +28,14 @@ export function conn_dynamo() {
     secretAccessKey: config.aws.scretid,
     region: config.aws.region,
   });
-  console.log("DynamoDB Connected!!");
+  // console.log("DynamoDB Connected!!");
+}
+
+export function conn_aws_sdk() {
+  AWS.config.update({
+    accessKeyId: config.aws.accessid,
+    secretAccessKey: config.aws.scretid,
+    region: config.aws.region,
+  });
+  // console.log("AWS-SDK Connected!!");
 }

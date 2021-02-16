@@ -232,14 +232,39 @@ async function updateMovie(args) {
 async function deleteAll() {
   try {
     // 1MB 초과해서 lasykey로 잘리는 부분 해결하기...
+    let ret_arr = [];
     let ids = await Movie.query("dumy").eq(1).attributes(["dumy", "id"]).exec();
-    ids = ids.toJSON();
+    ret_arr.push(ids.toJSON());
+    let key = ids.lastKey;
+    console.log(key);
+    let flag;
+    ret_arr = ret_arr.flat();
+    if (key) {
+      flag = true;
+    } else {
+      flag = false;
+    }
+    while (flag) {
+      let temp = await Movie.query("dumy")
+        .eq(1)
+        .startAt(key)
+        .attributes(["dumy", "id"])
+        .exec();
+      ret_arr.push(temp.toJSON());
+      if (temp.lastKey === undefined) {
+        flag != flag;
+        break;
+      } else {
+        key = temp.lastKey;
+      }
+    }
 
-    for (let i = 0; i < ids.length / 25 + 1; i++) {
+    console.log(ret_arr.length, "개 데이터를 삭제합니다.");
+    for (let i = 0; i < ret_arr.length / 25 + 1; i++) {
       let begin = i * 25;
       let end = begin + 25;
-      if (!ids[begin]) break;
-      await Movie.batchDelete(ids.slice(begin, end));
+      if (!ret_arr[begin]) break;
+      await Movie.batchDelete(ret_arr.slice(begin, end));
       console.log("DELETED>>>" + i);
     }
     return true;
@@ -252,33 +277,34 @@ async function deleteAll() {
 async function insertTestDB() {
   let item_arr = [];
   try {
-    for (let i = 0; i < 400; i++) {
-      for (let j = 0; j < 25; j++) {
-        let ti = Math.random().toString(36).substring(7);
-        let des = Math.random().toString(36).substring(7);
-        let sco = Math.floor(Math.random() * 99 + 1);
-        let wat = Math.floor(Math.random() * 10) % 2 == 0 ? true : false;
-        let inf =
-          Math.floor(Math.random() * 10) % 2 == 0
-            ? { lang: "eng", subtitle: "kor" }
-            : { lang: "kor", dubbing: "eng" };
-        item_arr.push({
-          dumy: 1,
-          id: uuidv4(),
-          title: ti,
-          score: sco,
-          desc: des,
-          s_title: ti,
-          s_score: sco,
-          s_desc: des,
-          watched: wat,
-          info: inf,
-        });
-      }
-      // console.log(item_arr);
-      await Movie.batchPut(item_arr);
+    for (let i = 0; i < 1000000; i++) {
+      let ti = Math.random().toString(36).substring(7);
+      let des = Math.random().toString(36).substring(7);
+      let sco = Math.floor(Math.random() * 99 + 1);
+      let wat = Math.floor(Math.random() * 10) % 2 == 0 ? true : false;
+      let inf =
+        Math.floor(Math.random() * 10) % 2 == 0
+          ? { lang: "eng", subtitle: "kor" }
+          : { lang: "kor", dubbing: "eng" };
+      item_arr.push({
+        dumy: 1,
+        id: uuidv4(),
+        title: ti,
+        score: sco,
+        desc: des,
+        s_title: ti,
+        s_score: sco,
+        s_desc: des,
+        watched: wat,
+        info: inf,
+      });
+    }
+    for (let i = 0; i < item_arr.length / 25 + 1; i++) {
+      let begin = i * 25;
+      let end = begin + 25;
+      if (!item_arr[begin]) break;
+      await Movie.batchPut(item_arr.slice(begin, end));
       console.log("INSERT_DONE>>>" + i);
-      item_arr = [];
     }
     return true;
   } catch (err) {

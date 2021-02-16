@@ -56,4 +56,4 @@ const movieSchema = new dynamoose.Schema(
   }
 );
 
-module.exports = dynamoose.model("test02-movie4", movieSchema);
+module.exports = dynamoose.model("test02-movie5", movieSchema);

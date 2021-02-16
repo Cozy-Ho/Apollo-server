@@ -1,3 +1,4 @@
+migration/data/*
 .env
 # Logs
 logs
