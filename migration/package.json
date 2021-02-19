@@ -14,6 +14,9 @@
     "mongoose": "^5.11.15",
     "uuid": "^8.3.2"
   },
+  "nodemonConfig": {
+    "ignore": ["data/*"]
+  },
   "scripts": {
     "start": "nodemon migration.js"
   }

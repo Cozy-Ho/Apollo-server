@@ -24,6 +24,7 @@ const sleep = (ms) => {
         setTimeout(resolve, ms);
     });
 };
+let flag = true;
 
 conn_mongo();
 conn_dynamo();
@@ -41,7 +42,7 @@ function input() {
       ================================================================================\n\
       This is Migration tool for DynamoDB and MongoDB\n\
       Please type a command with below Format.\n\
-      { export | import } { SDK | dynamo | mongo } { table_name } { filename } { option }\n\
+      { export | import | convert } { SDK | dynamo | mongo } { table_name } { filename } { option }\n\
       (ex) export mongo movie2 test {"title":"abc","score":"25","andor":"or"}\n\
       Ctrl+C to quit this program.\n\
       ================================================================================\n\
@@ -411,7 +412,7 @@ async function main() {
                             .then((res) => {
                                 const buf = Buffer.from(JSON.stringify(res));
                                 fs.appendFileSync(
-                                    `./data/${res.filename}.json`,
+                                    `./data/result.json`,
                                     buf,
                                     function (err) {
                                         if (err) console.log(err);
@@ -494,6 +495,7 @@ async function main() {
                     sdk_find(params, option).then((data) => {
                         // console.log(data);
                         ret_arr.push(data);
+                        ret_arr = ret_arr.flat();
                         const buf = Buffer.from(JSON.stringify(ret_arr));
                         fs.writeFile(`./data/${res.filename}.json`, buf, function (err) {
                             if (err) console.log(err);
@@ -508,6 +510,7 @@ async function main() {
                     sdk_search(params).then((data) => {
                         console.log(data);
                         ret_arr.push(data);
+                        ret_arr = ret_arr.flat();
                         const buf = Buffer.from(JSON.stringify(ret_arr));
                         fs.writeFile(`./data/${res.filename}.json`, buf, function (err) {
                             if (err) console.log(err);

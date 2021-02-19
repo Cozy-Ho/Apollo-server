@@ -7,7 +7,7 @@ AWS.config.update({ region: "ap-northeast-2" });
 var docClient = new AWS.DynamoDB.DocumentClient({ apiVersion: "2021-01-18" });
 var ddb = new AWS.DynamoDB({ apiVersion: "2021-01-18" });
 
-let tablename = "test02-movie5";
+let tablename = "test02-movie2";
 
 const sleep = (ms) => {
     return new Promise((resolve) => {
@@ -473,7 +473,7 @@ async function insertTestDB(args) {
     // Individual items to be written can be as large as 400 KB.
     // BatchWriteItem cannot update items
     try {
-        for (let i = 0; i < 1000000; i++) {
+        for (let i = 0; i < 100; i++) {
             let ti = Math.random().toString(36).substring(7);
             let des = Math.random().toString(36).substring(7);
             let sco = Math.floor(Math.random() * 99 + 1);
