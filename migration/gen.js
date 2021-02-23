@@ -2,14 +2,14 @@ import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
 
 let item_arr = [];
-for (let i = 0; i < 10; i++) {
+for (let i = 0; i < 100; i++) {
     let dum = Math.floor(Math.random() * 5000) % 5000;
     let ti = Math.random().toString(36).substring(7);
     let des = Math.random().toString(36).substring(7);
     let sco = Math.floor(Math.random() * 99 + 1);
     let wat = (Math.random() * 10) % 2 == 0 ? true : false;
     let inf =
-        (Math.random() * 10) % 6 == 0
+        (Math.random() * 10) % 5 == 0
             ? { lang: "eng", subtitle: "kor" }
             : (Math.random() * 10) % 2 == 0
             ? { lang: "kor", dubbing: "eng" }

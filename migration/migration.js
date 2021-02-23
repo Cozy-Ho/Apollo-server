@@ -7,6 +7,7 @@ import dynamoose from "dynamoose";
 
 import mongoSchema from "./models/mongo.js";
 import dynamoSchema from "./models/dynamo.js";
+import * as convert_logic from "./convert_logic.js";
 
 AWS.config.update({ region: "ap-northeast-2" });
 var docClient = new AWS.DynamoDB.DocumentClient({
@@ -24,7 +25,6 @@ const sleep = (ms) => {
         setTimeout(resolve, ms);
     });
 };
-let flag = true;
 
 conn_mongo();
 conn_dynamo();
@@ -37,12 +37,16 @@ function input() {
         let tablename;
         let filename;
         let option;
+        let input_filename;
+        let output_filename;
+        let logic;
         rl.question(
             '\
       ================================================================================\n\
       This is Migration tool for DynamoDB and MongoDB\n\
       Please type a command with below Format.\n\
-      { export | import | convert } { SDK | dynamo | mongo } { table_name } { filename } { option }\n\
+      { export | import } { SDK | dynamo | mongo } { table_name } { filename } { option }\n\
+      { convert } { input_filename } { output_filename } { convert_logic_filename } \n\
       (ex) export mongo movie2 test {"title":"abc","score":"25","andor":"or"}\n\
       Ctrl+C to quit this program.\n\
       ================================================================================\n\
@@ -50,10 +54,16 @@ function input() {
             (line) => {
                 let input = line.split(" ");
                 command = input[0];
-                db = input[1];
-                tablename = input[2];
-                filename = input[3];
-                option = input[4];
+                if (command == "convert") {
+                    input_filename = input[1];
+                    output_filename = input[2];
+                    logic = input[3];
+                } else {
+                    db = input[1];
+                    tablename = input[2];
+                    filename = input[3];
+                    option = input[4];
+                }
                 rl.close();
                 resolve({
                     command: command,
@@ -61,6 +71,9 @@ function input() {
                     tablename: tablename,
                     filename: filename,
                     option: option,
+                    input_filename: input_filename,
+                    output_filename: output_filename,
+                    logic: logic,
                 });
             }
         );
@@ -172,16 +185,16 @@ async function dynamo_put(res) {
     let remain_arr = [];
     for (let i = 0; i < data.length; i++) {
         item_arr.push({
-            dumy: data[i].dumy,
+            dumy: data[i].dumy || 1,
             id: data[i].id,
             title: data[i].title,
-            socre: data[i].score,
-            desc: data[i].desc,
-            s_title: data[i].title,
-            s_score: data[i].score,
-            s_desc: data[i].desc,
-            watched: data[i].watched,
-            info: data[i].info,
+            socre: data[i].score || 0,
+            desc: data[i].desc || "",
+            s_title: data[i].title || "",
+            s_score: data[i].score || 0,
+            s_desc: data[i].desc || "",
+            watched: data[i].watched || false,
+            info: data[i].info || null,
         });
     }
     for (let i = 0; i < item_arr.length / 25 + 1; i++) {
@@ -291,26 +304,24 @@ async function sdk_find(params, option) {
 }
 async function sdk_put(res) {
     let data = fs.readFileSync(`./data/${res.filename}.json`, "utf8");
-    //   console.log(JSON.parse(data));
+    // console.log(data);
     data = JSON.parse(data);
     data = data.flat();
     console.log(data.length, "개 데이터를 Migration 합니다.");
     let item_arr = [];
     for (let i = 0; i < data.length; i++) {
+        // console.log(typeof data[i]);
+        let items = {};
+        for (let j = 0; j < Object.keys(data[i]).length; j++) {
+            // console.log(data[i]);
+            let key = Object.keys(data[i])[j];
+            let value = Object.values(data[i])[j];
+            console.log(key);
+            items[key] = value;
+        }
         item_arr.push({
             PutRequest: {
-                Item: {
-                    dumy: data[i].dumy,
-                    id: data[i].id,
-                    title: data[i].title,
-                    score: data[i].score,
-                    desc: data[i].desc,
-                    s_title: data[i].title,
-                    s_score: data[i].score,
-                    s_desc: data[i].desc,
-                    watched: data[i].watched,
-                    info: data[i].info,
-                },
+                Item: items,
             },
         });
     }
@@ -400,6 +411,7 @@ async function main() {
                 } catch (err) {
                     console.log("file not exist");
                 }
+                console.time("EXPORT");
                 Movie.count({}, async function (err, count) {
                     console.log(count);
                     let len = count;
@@ -409,51 +421,66 @@ async function main() {
                         await Movie.find(option)
                             .skip(skip)
                             .limit(limit)
-                            .then((res) => {
-                                const buf = Buffer.from(JSON.stringify(res));
-                                fs.appendFileSync(
-                                    `./data/result.json`,
-                                    buf,
-                                    function (err) {
-                                        if (err) console.log(err);
-                                        else console.log("MIGRATING>>>", i);
-                                    }
-                                );
+                            .then(async (res) => {
+                                const buf = await Buffer.from(JSON.stringify(res));
+                                await fs.appendFileSync(`./data/${filename}_${i}.json`, buf);
+                                console.log("DONE>>>", (i + 1) * 100000);
                             });
                     }
+                    console.timeEnd("EXPORT");
                 });
                 // Movie.find(option)
                 //     .then((data) => {
                 //         // console.log(data);
                 //         console.log(data.length, "개 데이터를 가져옵니다.");
-                //         // const buf = Buffer.from(JSON.stringify(data));
-                //         // fs.writeFile(`./data/${res.filename}.json`, buf, function (err) {
-                //         //     if (err) console.log(err);
-                //         //     else console.log("DONE>>>");
-                //         // });
+                //         const buf = Buffer.from(JSON.stringify(data));
+                //         fs.writeFile(`./data/${res.filename}.json`, buf, function (err) {
+                //             if (err) console.log(err);
+                //             else console.log("DONE>>>");
+                //         });
                 //     })
                 //     .catch((err) => {
                 //         console.log(err);
                 //     });
             } else {
                 console.time("IMPORT");
-                fs.readFile(`./data/${res.filename}.json`, "utf8", async function (err, data) {
+                fs.readdir("./data/", async function (err, filenames) {
                     if (err) {
                         console.log(err);
-                    } else {
-                        // console.log(JSON.parse(data));
-                        data = JSON.parse(data);
-                        console.log(data.length, "개 데이터를 저장합니다.");
-                        for (let i = 0; i < data.length / 100000 + 1; i++) {
-                            let begin = i * 100000;
-                            let end = begin + 100000;
-                            if (!data[begin]) break;
-                            await Movie.insertMany(data.slice(begin, end));
-                            console.log("MIGRATING >>> ", i);
-                        }
-                        console.timeEnd("IMPORT");
+                        return;
                     }
+                    await filenames.forEach(function (filename) {
+                        if (filename.startsWith(res.filename)) {
+                            fs.readFile(`./data/${filename}`, "utf8", async function (err, data) {
+                                if (err) {
+                                    console.log(err);
+                                } else {
+                                    data = JSON.parse(data);
+                                    console.log(data.length, "개 데이터를 저장합니다.");
+                                    await Movie.insertMany(data);
+                                }
+                            });
+                        }
+                    });
                 });
+                console.timeEnd("IMPORT");
+                // fs.readFile(`./data/${res.filename}.json`, "utf8", async function (err, data) {
+                //     if (err) {
+                //         console.log(err);
+                //     } else {
+                //         data = JSON.parse(data);
+                //         data = data.flat(Infinity);
+                //         console.log(data.length, "개 데이터를 저장합니다.");
+                //         for (let i = 0; i < data.length / 100000 + 1; i++) {
+                //             let begin = i * 100000;
+                //             let end = begin + 100000;
+                //             if (!data[begin]) break;
+                //             await Movie.insertMany(data.slice(begin, end));
+                //             console.log("MIGRATING >>> ", (i + 1) * 100000);
+                //         }
+                //         console.timeEnd("IMPORT");
+                //     }
+                // });
             }
         } else if (res.db == "dynamo") {
             if (res.command == "export") {
@@ -484,10 +511,6 @@ async function main() {
             params.ExpressionAttributeNames = {
                 "#desc": "desc",
             };
-            // params.ExpressionAttributeValues = {
-            //     ":z": 1,
-            // };
-            // params.KeyConditionExpression = "dumy= :z";
             if (res.command == "export") {
                 let ret_arr = [];
                 if (option) {
@@ -527,6 +550,27 @@ async function main() {
                     console.timeEnd("IMPORT_TIME");
                 });
             }
+        }
+        if (res.command == "convert") {
+            fs.readFile(`./data/${res.input_filename}.json`, "utf8", async function (err, data) {
+                if (err) {
+                    console.log(err);
+                    return;
+                } else {
+                    let result;
+                    data = JSON.parse(data);
+                    data = data.flat();
+                    // console.log(data.length);
+                    result = convert_logic.main_logic(data, res.logic);
+                    const buf = Buffer.from(JSON.stringify(result));
+                    fs.writeFile(`./data/${res.output_filename}.json`, buf, function (err) {
+                        if (err) console.log(err);
+                        else {
+                            console.log("DONE >>> ");
+                        }
+                    });
+                }
+            });
         }
     });
 }
