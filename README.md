@@ -1,14 +1,18 @@
 # GraphQL_practice
 
 GraphQL practice repo.
+CRUD practice + Migration
 
 # ENV
 
-- Yarn 1.22.10
-- MongoDB 4.4.3
-- AWS DynamoDB
+-   Apollo-server
+-   GraphQL
+-   Node 15.5.1
+-   Yarn 1.22.10
+-   MongoDB 4.4.3
+-   AWS DynamoDB
 
-## How to run
+# How to run
 
 1. clone this repo.
 2. `$ yarn install`
