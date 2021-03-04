@@ -1,4 +1,4 @@
-import movieSchema from "../models/movies";
+import { movieSchema } from "../models/movies.js";
 import mongoose from "mongoose";
 import { v4 as uuidv4 } from "uuid";
 
@@ -189,7 +189,7 @@ async function deleteAll() {
     }
 }
 
-module.exports = {
+export default {
     getMovie,
     searchMovie,
     createMovie,

@@ -3,8 +3,10 @@
   "version": "1.0.0",
   "main": "app.js",
   "license": "MIT",
-  "type": "commonjs",
+  "type": "module",
   "dependencies": {
+    "@babel/preset-env": "^7.13.9",
+    "@babel/preset-stage-3": "^7.8.3",
     "apollo-server": "^2.19.2",
     "aws-sdk": "^2.828.0",
     "babel-cli": "^6.26.0",
@@ -15,10 +17,6 @@
     "uuid": "^8.3.2"
   },
   "scripts": {
-    "start": "nodemon --exec babel-node app.js mongo"
-  },
-  "devDependencies": {
-    "babel-preset-env": "^1.7.0",
-    "babel-preset-stage-3": "^6.24.1"
+    "start": "nodemon app.js mongo"
   }
 }

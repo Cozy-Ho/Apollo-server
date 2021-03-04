@@ -16,31 +16,32 @@ ENV_FORMAT
 import path from "path";
 import dotenv from "dotenv";
 
+const __dirname = path.resolve();
 var config = {};
 // DB 선택 초기값
 let select = "dynamo";
 
-dotenv.config({ path: path.join(__dirname, ".env") });
+dotenv.config({ path: path.join(__dirname, "./config/.env") });
 const env = process.env;
 
 var db = {};
 
 db.mongo = {
-  host: env.MONGO_HOST,
-  port: env.MONGO_PORT,
-  username: env.MONGO_USER_NAME,
-  password: env.MONGO_USER_PW,
-  tablename: env.MONGO_TABLE_NAME,
+    host: env.MONGO_HOST,
+    port: env.MONGO_PORT,
+    username: env.MONGO_USER_NAME,
+    password: env.MONGO_USER_PW,
+    tablename: env.MONGO_TABLE_NAME,
 };
 
 var aws = {
-  accessid: env.AWS_ACCESS_KEY_ID,
-  scretid: env.AWS_SECRET_ACCESS_KEY,
-  region: env.AWS_DEFAULT_REGION,
+    accessid: env.AWS_ACCESS_KEY_ID,
+    scretid: env.AWS_SECRET_ACCESS_KEY,
+    region: env.AWS_DEFAULT_REGION,
 };
 
 config.db = db;
 config.aws = aws;
 config.select = select;
 
-module.exports = config;
+export default config;

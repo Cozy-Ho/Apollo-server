@@ -1,4 +1,4 @@
-var AWS = require("aws-sdk");
+import AWS from "aws-sdk";
 import { v4 as uuidv4 } from "uuid";
 
 AWS.config.update({ region: "ap-northeast-2" });
@@ -7,7 +7,7 @@ AWS.config.update({ region: "ap-northeast-2" });
 var docClient = new AWS.DynamoDB.DocumentClient({ apiVersion: "2021-01-18" });
 var ddb = new AWS.DynamoDB({ apiVersion: "2021-01-18" });
 
-let tablename = "test02-movie2";
+let tablename = "test02-movie5";
 
 const sleep = (ms) => {
     return new Promise((resolve) => {
@@ -566,7 +566,7 @@ async function processRemainItemsCallback(err, data) {
     }
 }
 
-module.exports = {
+export default {
     getMovie,
     searchMovie,
     createMovie,

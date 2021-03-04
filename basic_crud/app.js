@@ -1,7 +1,7 @@
 import { GraphQLServer } from "graphql-yoga";
-import resolvers from "./graphql/resolvers";
-import config from "./config/config";
-import db from "./models";
+import resolvers from "./graphql/resolvers.js";
+import config from "./config/config.js";
+import connect_all from "./models/index.js";
 
 let db_select = process.argv.slice(2)[0];
 
@@ -18,9 +18,7 @@ if (db_select == "mongo") {
 
 // 모두 연결.
 // 파라미터에 따라서 다른 DB로 연결하도록 수정해야함.
-db.conn_mongo();
-db.conn_dynamo();
-db.conn_aws_sdk();
+connect_all();
 
 const server = new GraphQLServer({
     typeDefs: "graphql/schema.graphql",

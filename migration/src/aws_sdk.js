@@ -7,6 +7,12 @@ var docClient = new AWS.DynamoDB.DocumentClient({
     maxRetries: 10,
 });
 
+const sleep = (ms) => {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
+};
+
 export function sdk_export(res, option) {
     let params = {
         TableName: res.tablename,
@@ -34,7 +40,6 @@ export function sdk_export(res, option) {
     } else {
         console.time("EXPORT_TIME");
         sdk_search(params).then((data) => {
-            console.log(data);
             ret_arr.push(data);
             ret_arr = ret_arr.flat();
             const buf = Buffer.from(JSON.stringify(ret_arr));
@@ -66,7 +71,6 @@ export function sdk_import(res) {
 function sdk_search(params) {
     let ret_arr = [];
     return new Promise(function (resolve, reject) {
-        console.log(params);
         docClient.scan(params, async function (err, data) {
             if (err) {
                 console.log(err);
@@ -153,7 +157,6 @@ async function sdk_put(res) {
             // console.log(data[i]);
             let key = Object.keys(data[i])[j];
             let value = Object.values(data[i])[j];
-            console.log(key);
             items[key] = value;
         }
         item_arr.push({
