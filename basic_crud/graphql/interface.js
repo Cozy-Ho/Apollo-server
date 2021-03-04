@@ -1,33 +1,18 @@
-import mongo_movie from "./movie.js";
-import dynamo_movie from "./dynamo_movie.js";
-import aws_movie from "./aws-sdk.js";
+import mongo_movie from "./mongo/index.js";
+import dynamo_movie from "./dynamo/index.js";
+import aws_movie from "./sdk/index.js";
 import config from "../config/config.js";
 
-function insertTestDB(args) {
-    try {
-        if (config.select == "mongo") {
-            return mongo_movie.insertTestDB(args);
-        } else if (config.select == "dynamo" && !args.new) {
-            return dynamo_movie.insertTestDB(args);
-        } else if (config.select == "aws" || args.new) {
-            return aws_movie.insertTestDB(args);
-        } else {
-            throw err;
-        }
-    } catch (err) {
-        console.log(err);
-        throw err;
-    }
-}
+let tableName = "test02-movie";
 
 async function deleteAll() {
     try {
         if (config.select == "mongo") {
-            return await mongo_movie.deleteAll();
+            return await mongo_movie.deleteAll(tableName);
         } else if (config.select == "dynamo") {
-            return await dynamo_movie.deleteAll();
+            return await dynamo_movie.deleteAll(tableName);
         } else if (config.select == "aws") {
-            return await aws_movie.deleteAll();
+            return await aws_movie.deleteAll(tableName);
         } else {
             throw err;
         }
@@ -58,11 +43,11 @@ async function setDatabase(flag) {
 async function searchMovie(args) {
     try {
         if (config.select == "mongo") {
-            return await mongo_movie.searchMovie(args);
+            return await mongo_movie.searchMovie(args, tableName);
         } else if (config.select == "dynamo") {
-            return await dynamo_movie.searchMovie(args);
+            return await dynamo_movie.searchMovie(args, tableName);
         } else {
-            return await aws_movie.searchMovie(args);
+            return await aws_movie.searchMovie(args, tableName);
         }
     } catch (err) {
         console.log(err);
@@ -73,11 +58,11 @@ async function searchMovie(args) {
 async function getMovie(id) {
     try {
         if (config.select == "mongo") {
-            return await mongo_movie.getMovie(id);
+            return await mongo_movie.getMovie(id, tableName);
         } else if (config.select == "dynamo") {
-            return await dynamo_movie.getMovie(id);
+            return await dynamo_movie.getMovie(id, tableName);
         } else {
-            return await aws_movie.getMovie(id);
+            return await aws_movie.getMovie(id, tableName);
         }
     } catch (err) {
         console.log(err);
@@ -88,11 +73,11 @@ async function getMovie(id) {
 async function createMovie(args) {
     try {
         if (config.select == "mongo") {
-            return await mongo_movie.createMovie(args);
+            return await mongo_movie.createMovie(args, tableName);
         } else if (config.select == "dynamo") {
-            return await dynamo_movie.createMovie(args);
+            return await dynamo_movie.createMovie(args, tableName);
         } else {
-            return await aws_movie.createMovie(args);
+            return await aws_movie.createMovie(args, tableName);
         }
     } catch (err) {
         console.log(err);
@@ -102,11 +87,11 @@ async function createMovie(args) {
 async function updateMovie(args) {
     try {
         if (config.select == "mongo") {
-            return await mongo_movie.updateMovie(args);
+            return await mongo_movie.updateMovie(args, tableName);
         } else if (config.select == "dynamo") {
-            return await dynamo_movie.updateMovie(args);
+            return await dynamo_movie.updateMovie(args, tableName);
         } else {
-            return await aws_movie.updateMovie(args);
+            return await aws_movie.updateMovie(args, tableName);
         }
     } catch (err) {
         console.log(err);
@@ -116,11 +101,11 @@ async function updateMovie(args) {
 async function removeMovie(id) {
     try {
         if (config.select == "mongo") {
-            return await mongo_movie.removeMovie(id);
+            return await mongo_movie.removeMovie(id, tableName);
         } else if (config.select == "dynamo") {
-            return await dynamo_movie.removeMovie(id);
+            return await dynamo_movie.removeMovie(id, tableName);
         } else {
-            return await aws_movie.removeMovie(id);
+            return await aws_movie.removeMovie(id, tableName);
         }
     } catch (err) {
         console.log(err);
@@ -128,7 +113,6 @@ async function removeMovie(id) {
 }
 
 export default {
-    insertTestDB,
     deleteAll,
     setDatabase,
     searchMovie,

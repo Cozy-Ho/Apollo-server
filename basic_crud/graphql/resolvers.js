@@ -24,8 +24,6 @@ const resolvers = {
         // id, title, score
         updateMovie: (_, { ...args }) => EnteryPoint.updateMovie(args),
 
-        // TestDB
-        insertTestDB: (_, { ...args }) => EnteryPoint.insertTestDB(args),
         deleteAll: () => EnteryPoint.deleteAll(),
         // Set database
         setDatabase: (_, { flag }) => EnteryPoint.setDatabase(flag),
